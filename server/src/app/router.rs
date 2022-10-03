@@ -1,7 +1,7 @@
-mod request;
-mod response;
+pub mod request;
+pub mod response;
 use super::state::NeptuneState;
-use crate::rpc::HttpNeptuneRpcHandler;
+use crate::{forks::ForkError, rpc::HttpNeptuneRpcHandler};
 use anvil_rpc::request::Request;
 use anvil_server::handler;
 use axum::{
@@ -40,11 +40,11 @@ pub async fn get_forks(Extension(state): Extension<NeptuneState>) -> Response {
 pub async fn create_fork(
     body: Json<CreateForkRequest>,
     Extension(state): Extension<NeptuneState>,
-) -> Response {
-    let fork = state
+) -> Result<Response, ForkError> {
+    let fork_id = state
         .create_fork(body.config.clone(), body.name.clone())
-        .await;
-    return WithForkIdResponse { fork_id: fork.id }.into_response();
+        .await?;
+    Ok(WithForkIdResponse { fork_id }.into_response())
 }
 
 #[axum_macros::debug_handler]
@@ -58,7 +58,7 @@ pub async fn delete_fork(
         return OkResponse { ok: true }.into_response();
     }
 
-    NeptuneError::ForkNotFound.into_response()
+    NeptuneError::ForkError(ForkError::ForkNotFound(fork_id)).into_response()
 }
 
 #[axum_macros::debug_handler]
@@ -75,5 +75,5 @@ pub async fn handle_rpc(
         return res.into_response();
     }
 
-    NeptuneError::ForkNotFound.into_response()
+    NeptuneError::ForkError(ForkError::ForkNotFound(fork_id)).into_response()
 }

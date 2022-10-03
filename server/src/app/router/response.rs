@@ -1,4 +1,4 @@
-use crate::forks::EthFork;
+use crate::forks::{EthFork, ForkError};
 use axum::http::StatusCode;
 use axum::{
     response::{IntoResponse, Response},
@@ -8,13 +8,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 pub enum NeptuneError {
-    ForkNotFound,
+    ForkError(ForkError),
 }
 
 impl IntoResponse for NeptuneError {
     fn into_response(self) -> Response {
         match self {
-            Self::ForkNotFound => (StatusCode::NOT_FOUND, "Fork not found").into_response(),
+            NeptuneError::ForkError(err) => err.into_response(),
         }
     }
 }
