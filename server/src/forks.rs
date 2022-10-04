@@ -63,6 +63,8 @@ pub struct Snapshot {
 // splitting this up into two structs because we have distinct control flows for instantiating
 // an independent fork and for instantiating a recursive fork.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+#[serde(deny_unknown_fields)]
 pub enum ForkConfig {
     Child(ChildConfig),
     Base(BaseConfig),
@@ -90,10 +92,11 @@ impl Default for ForkConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(default)]
+#[serde(deny_unknown_fields)]
 pub struct ChildConfig {
     /// url of the rpc server that should be used for any rpc calls
-    pub eth_rpc_url: Option<String>,
+    #[serde(skip)]
+    eth_rpc_url: String,
     // optionally specify a parent fork
     pub parent_fork_id: String,
     /// pins the block number for the state fork
@@ -103,6 +106,7 @@ pub struct ChildConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BaseConfig {
     /// url of the rpc server that should be used for any rpc calls
     pub eth_rpc_url: Option<String>,
@@ -127,14 +131,27 @@ impl TryInto<NodeConfig> for ChildConfig {
     type Error = ForkError;
 
     fn try_into(self) -> Result<NodeConfig, Self::Error> {
-        let fork_id = rpc_url_from_fork_id(self.parent_fork_id.clone());
+        let fork_id = validate_fork_id(self.parent_fork_id.clone());
         match fork_id {
-            Ok(id) => Ok(NodeConfig {
-                eth_rpc_url: Some(id),
+            Ok(_) => Ok(NodeConfig {
                 ..Default::default()
             }),
             Err(_) => Err(Self::Error::InvalidForkId(self.parent_fork_id)),
         }
+    }
+}
+
+impl ChildConfig {
+    pub fn set_eth_rpc_url(&mut self, host: String, port: u16) -> Result<(),ForkError> {
+        let valid = validate_fork_id(self.parent_fork_id.clone());
+        match valid {
+            Ok(_)=>{
+                self.eth_rpc_url = format!("{}:{}/forks/{}", host, port, self.parent_fork_id);
+                Ok(())
+            }
+            Err(_) => Err(ForkError::InvalidForkId(self.parent_fork_id.clone()))
+        }
+
     }
 }
 
@@ -180,14 +197,14 @@ pub struct EthFork {
 }
 
 impl EthFork {
-    pub async fn new(config: ForkConfig, name: String) -> Result<Self, ForkError> {
+    pub async fn new(config: ForkConfig, name: &String) -> Result<Self, ForkError> {
         let api = create_eth_api(config.clone().try_into()?).await?;
         let id = Uuid::new_v4().to_string();
         let base_block_number = api.block_number().unwrap().as_u64();
 
         let fork = Self {
             id,
-            name,
+            name: name.clone(),
             config,
             readonly: false,
             base_block_number,
@@ -258,13 +275,12 @@ impl EthFork {
     }
 
     // sets the minimum block number a user can revert to
-    pub async fn set_base_block_number(&mut self, num: u64) -> Result<(), ForkError> {
-        {
-            let api_read = self.api.read().await;
-            let best_num = api_read.backend.best_number().as_u64();
-            if num > best_num {
-                return Err(ForkError::BaseTooHigh(num, best_num));
-            }
+    pub async fn set_base_block_number(&mut self, num: Option<u64>) -> Result<(), ForkError> {
+        let api_read = self.api.read().await;
+        let best_num = api_read.backend.best_number().as_u64();
+        let num = num.unwrap_or(best_num);
+        if num > best_num {
+            return Err(ForkError::BaseTooHigh(num, best_num));
         }
 
         if num < self.base_block_number {
@@ -276,7 +292,6 @@ impl EthFork {
 }
 
 pub async fn create_eth_api(mut config: NodeConfig) -> Result<EthApi, ForkError> {
-
     let logger: LoggingManager = Default::default();
 
     let backend = Arc::new(config.setup().await);
@@ -351,10 +366,10 @@ pub async fn create_eth_api(mut config: NodeConfig) -> Result<EthApi, ForkError>
     Ok(api)
 }
 
-fn rpc_url_from_fork_id(fork_id: String) -> Result<String, uuid::Error> {
+fn validate_fork_id(fork_id: String) -> Result<(), uuid::Error> {
     let id_underlying: &str = &fork_id.clone();
     match Uuid::parse_str(id_underlying) {
-        Ok(_) => Ok(fork_id.clone()),
+        Ok(_) => Ok(()),
         Err(e) => Err(e),
     }
 }
