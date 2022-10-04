@@ -29,14 +29,9 @@ Reponse:
 }
 ```
 
-### POST
-
-```
-
-# Create a new fork
-
-POST /fork
-
+## POST
+#### /forks
+Create a new fork
 Body:
 
 {
@@ -48,38 +43,49 @@ Body:
 
 
 Response:
-
+```json
 {
-   fork_id: <new_fork_id>,
+   "fork_id": "<string>",
 }
-
 ```
 
-```
-# Make an RPC request to fork with id <fork_id>
-
-
-POST /fork/{fork_id}`
-
-Body:
-
-# An eth or neptune rpc request
-
+config (base fork):
+```json
 {
-  id: 1,
-  jsonrpc: "2.0",
-  method: "eth_blockNumber",
-  params: []
+  "eth_rpc_url": "string?",
+  "fork_block_number": number?,
+  "prefund_anvil_accounts": bool
 }
-
-Responst:
-
-# An eth rpc response
-
-{
-   id: 1,
-   result: "0xasedfasdf"
-}
-
-
 ```
+
+config (child fork):
+```json
+{
+  "parent_fork_id": "string"
+  "fork_block_number": number?,
+  "prefund_anvil_accounts": bool
+}
+```
+
+
+# Make an RPC request to fork with id {fork_id}
+## POST /forks/{fork_id}
+An eth or neptune rpc request
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "method": "eth_blockNumber",
+  "params": []
+}
+```
+
+### Response:
+```json
+// An eth rpc response
+{
+   "id": 1,
+   "result": "0xasedfasdf"
+}
+```
+
