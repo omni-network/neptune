@@ -72,7 +72,7 @@ Body:
   params: []
 }
 
-Responst:
+Response:
 
 # An eth rpc response
 
