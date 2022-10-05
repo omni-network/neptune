@@ -1,4 +1,6 @@
-# Neptune Server
+<image src="./media/trident1.png"/>
+
+# __*Neptune Server*__
 
 ## quickstart
 
@@ -101,3 +103,11 @@ Send an eth or neptune rpc request
 ```
 #### __*DELETE*__
 Delete a fork - fails if a fork is referenced by another fork.
+
+#### __*GET*__
+Returns a serialized version of the fork if it exists.
+
+
+### _`/reset`_
+#### __*DELETE*__
+clears all forks from memory
