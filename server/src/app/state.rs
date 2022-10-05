@@ -55,7 +55,10 @@ impl NeptuneState {
         let mut forks = self.forks.write().await;
         if let Some(parent_fork) = forks.get_mut(&config.parent_fork_id) {
             let _ = parent_fork
-                .set_base_block_number(config.fork_block_number.clone())
+                .add_child(
+                    config.parent_fork_id.clone(),
+                    config.fork_block_number.clone(),
+                )
                 .await?;
         }
         let conf = ForkConfig::Child(config.clone());

@@ -17,8 +17,8 @@ use axum::{http::StatusCode, response::IntoResponse};
 use ethers::{prelude::U256, providers::ProviderError};
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::sync::Arc;
+use std::{sync::Arc, fmt::Debug};
+use std::{collections::HashSet, error::Error};
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
@@ -36,6 +36,10 @@ pub enum ForkError {
     ForkNotFound(String),
     #[error("snapshot with id {0} not found")]
     SnapshotNotFound(usize),
+    #[error("fork is currently readonly because it has children {0} ")]
+    Readonly(String),
+    #[error(transparent)]
+    BlockchainError(BlockchainError),
 }
 
 pub enum ForkOrBlockchainError {
@@ -188,7 +192,7 @@ pub struct EthFork {
     pub name: String,
     pub config: ForkConfig,
     pub base_block_number: u64,
-    pub readonly: bool,
+    pub children: HashSet<String>,
 
     #[serde(skip)]
     pub api: Arc<RwLock<EthApi>>,
@@ -207,7 +211,7 @@ impl EthFork {
             id,
             name: name.clone(),
             config,
-            readonly: false,
+            children: Default::default(),
             base_block_number,
             api: Arc::new(RwLock::new(api)),
             snapshots: Arc::new(RwLock::new(Vec::new())),
@@ -230,6 +234,25 @@ impl EthFork {
         snapshot
     }
 
+    pub async fn add_child(
+        &mut self,
+        fork_id: String,
+        block_number: Option<u64>,
+    ) -> Result<(), ForkError> {
+        let res = self.set_base_block_number(block_number).await;
+        match res {
+            Ok(_) => {
+                self.children.insert(fork_id);
+                Ok(())
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn remove_child(&mut self, fork_id: String) -> bool {
+        self.children.remove(&fork_id)
+    }
+
     pub async fn save_snapshot(&self, snapshot: Snapshot) {
         let mut snapshots = self.snapshots.write().await;
         snapshots.push(snapshot);
@@ -242,6 +265,17 @@ impl EthFork {
     }
 
     pub async fn step_back(&self, times: usize) -> Result<bool, BlockchainError> {
+        let api = self.api.write().await;
+        let requested_block = api.backend.best_number().as_u64() - (times as u64);
+        if self.base_block_number > requested_block {
+            return Err(BlockchainError::ForkProvider(ProviderError::CustomError(
+                format!(
+                    "unable to revert to block {} : another fork depends on this fork at block {}",
+                    requested_block, self.base_block_number,
+                ),
+            )));
+        }
+
         let mut snapshots = self.snapshots.write().await;
 
         let i = if snapshots.len() > times {
@@ -253,7 +287,6 @@ impl EthFork {
         let snapshot = snapshots.get(i);
         match snapshot {
             Some(snapshot) => {
-                let api = self.api.write().await;
                 let result = api.evm_revert(snapshot.id).await;
                 // TODO: do we need to prune api.backend.active_snapshots
                 if i == 0 {
@@ -279,7 +312,7 @@ impl EthFork {
     }
 
     // sets the minimum block number a user can revert to
-    pub async fn set_base_block_number(&mut self, num: Option<u64>) -> Result<(), ForkError> {
+    async fn set_base_block_number(&mut self, num: Option<u64>) -> Result<(), ForkError> {
         let api_read = self.api.read().await;
         let best_num = api_read.backend.best_number().as_u64();
         let num = num.unwrap_or(best_num);
