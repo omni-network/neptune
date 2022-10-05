@@ -14,7 +14,7 @@ use anvil::{
     NodeConfig,
 };
 use axum::{http::StatusCode, response::IntoResponse};
-use ethers::prelude::U256;
+use ethers::{prelude::U256, providers::ProviderError};
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
@@ -34,6 +34,8 @@ pub enum ForkError {
     InvalidForkId(String),
     #[error("fork with id ({0}) not found")]
     ForkNotFound(String),
+    #[error("snapshot with id {0} not found")]
+    SnapshotNotFound(usize),
 }
 
 pub enum ForkOrBlockchainError {
@@ -142,16 +144,15 @@ impl TryInto<NodeConfig> for ChildConfig {
 }
 
 impl ChildConfig {
-    pub fn set_eth_rpc_url(&mut self, host: String, port: u16) -> Result<(),ForkError> {
+    pub fn set_eth_rpc_url(&mut self, host: String, port: u16) -> Result<(), ForkError> {
         let valid = validate_fork_id(self.parent_fork_id.clone());
         match valid {
-            Ok(_)=>{
+            Ok(_) => {
                 self.eth_rpc_url = format!("{}:{}/forks/{}", host, port, self.parent_fork_id);
                 Ok(())
             }
-            Err(_) => Err(ForkError::InvalidForkId(self.parent_fork_id.clone()))
+            Err(_) => Err(ForkError::InvalidForkId(self.parent_fork_id.clone())),
         }
-
     }
 }
 
@@ -249,20 +250,23 @@ impl EthFork {
             0
         };
 
-        // TODO: fix unsafe unwrap
-        let snapshot = snapshots.get(i).unwrap();
-
-        let api = self.api.write().await;
-        let result = api.evm_revert(snapshot.id).await;
-
-        // TODO: do we need to prune api.backend.active_snapshots
-        if i == 0 {
-            snapshots.truncate(1);
-        } else {
-            snapshots.truncate(i);
+        let snapshot = snapshots.get(i);
+        match snapshot {
+            Some(snapshot) => {
+                let api = self.api.write().await;
+                let result = api.evm_revert(snapshot.id).await;
+                // TODO: do we need to prune api.backend.active_snapshots
+                if i == 0 {
+                    snapshots.truncate(1);
+                } else {
+                    snapshots.truncate(i);
+                }
+                result
+            }
+            None => Err(BlockchainError::ForkProvider(ProviderError::CustomError(
+                format!("snapshot not found: {}", i),
+            ))),
         }
-
-        result
     }
 
     pub async fn step_back_once(&self) -> Result<bool, BlockchainError> {
