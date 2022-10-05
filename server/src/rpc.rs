@@ -51,7 +51,7 @@ impl HttpNeptuneRpcHandler {
 
         match request {
             EthRequest::EthSendTransaction(_) | EthRequest::EthSendRawTransaction(_) => {
-                self.fork.snapshot().await;
+                let _ = self.fork.snapshot().await;
             }
             _ => {}
         }

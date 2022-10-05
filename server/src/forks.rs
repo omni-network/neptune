@@ -17,8 +17,8 @@ use axum::{http::StatusCode, response::IntoResponse};
 use ethers::{prelude::U256, providers::ProviderError};
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use std::{sync::Arc, fmt::Debug};
 use std::{collections::HashSet, error::Error};
+use std::{fmt::Debug, sync::Arc};
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
@@ -36,6 +36,8 @@ pub enum ForkError {
     ForkNotFound(String),
     #[error("snapshot with id {0} not found")]
     SnapshotNotFound(usize),
+    #[error("snapshot failed to be created")]
+    SnapshotFailed(),
     #[error("fork is currently readonly because it has children {0} ")]
     Readonly(String),
     #[error(transparent)]
@@ -205,7 +207,7 @@ impl EthFork {
     pub async fn new(config: ForkConfig, name: &String) -> Result<Self, ForkError> {
         let api = create_eth_api(config.clone().try_into()?).await?;
         let id = Uuid::new_v4().to_string();
-        let base_block_number = api.block_number().unwrap().as_u64();
+        let base_block_number = api.backend.best_number().as_u64();
 
         let fork = Self {
             id,
@@ -217,21 +219,28 @@ impl EthFork {
             snapshots: Arc::new(RwLock::new(Vec::new())),
         };
 
-        fork.snapshot().await;
-        Ok(fork)
+        match fork.snapshot().await{
+            Ok(_) => Ok(fork),
+            Err(err) => Err(err)
+        }    
     }
 
-    pub async fn take_snapshot(&self) -> Snapshot {
+    pub async fn take_snapshot(&self) -> Result<Snapshot, ForkError> {
         let api = self.api.read().await;
-        let snapshot_id = api.evm_snapshot().await.unwrap();
-        let block_number = api.block_number().unwrap().as_u64();
+        let snapshot_id = api.evm_snapshot().await;
+        match snapshot_id {
+            Ok(snapshot_id) => {
+                let block_number = api.backend.best_number().as_u64();
 
-        let snapshot = Snapshot {
-            id: snapshot_id,
-            block_number,
-        };
+                let snapshot = Snapshot {
+                    id: snapshot_id,
+                    block_number,
+                };
 
-        snapshot
+                Ok(snapshot)
+            }
+            Err(_) => Err(ForkError::SnapshotFailed()),
+        }
     }
 
     pub async fn add_child(
@@ -258,10 +267,14 @@ impl EthFork {
         snapshots.push(snapshot);
     }
 
-    pub async fn snapshot(&self) -> Snapshot {
-        let snapshot = self.take_snapshot().await;
-        self.save_snapshot(snapshot.clone()).await;
-        snapshot
+    pub async fn snapshot(&self) -> Result<Snapshot, ForkError> {
+        match self.take_snapshot().await {
+            Ok(snapshot) => {
+                self.save_snapshot(snapshot.clone()).await;
+                Ok(snapshot)
+            }
+            Err(e) => Err(e),
+        }
     }
 
     pub async fn step_back(&self, times: usize) -> Result<bool, BlockchainError> {
