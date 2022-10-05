@@ -1,0 +1,27 @@
+[package]
+name = "neptune"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+anvil = {  path = "foundry/anvil" }
+anvil-core = { path = "foundry/anvil/core" }
+anvil-rpc = {  path = "foundry/anvil/rpc" }
+anvil-server = { path = "foundry/anvil/server" }
+foundry-evm = { path = "foundry/evm" }
+axum = "0.5.16"
+axum-macros = "0.2.3"
+clap = "3.2.22"
+parking_lot = "0.12.1"
+serde = "1.0.144"
+tokio = "1.21.1"
+tower = "0.4"
+tower-http = {version = "0.3", features = ["full"]}
+uuid = "1.1.2"
+yansi = "0.5.1"
+futures = "0.3.24"
+async-trait = "0.1.57"
+ethers = { git = "https://github.com/gakonst/ethers-rs" }
+
+[patch.crates-io]
+revm = { git = "https://github.com/bluealloy/revm" }
