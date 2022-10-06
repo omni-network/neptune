@@ -23,8 +23,9 @@ export class NeptuneController {
     msg.accounts.onGet(() => this.accounts)
     msg.chain.onGet(() => this.chainId)
     msg.baseUrl.onGet(() => this.baseUrl.toString())
-    msg.connection.onGet(this.isConnected.bind(this))
+    msg.connection.onGet(tab => this.isConnected(tab))
     msg.fork.onGet(() => this.fork)
+    msg.forkRpcUrl.onGet(() => this.forkRpcUrl)
     msg.providerRpcUrl.onGet(() =>
       this.providerRpcUrl ? this.providerRpcUrl.toString() : null,
     )
