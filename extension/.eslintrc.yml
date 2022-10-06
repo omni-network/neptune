@@ -1,0 +1,32 @@
+root: true
+ignorePatterns:
+  ['**/node_modules/', '**/dist/', '.eslintrc.yml', 'rift-protocol']
+parser: '@typescript-eslint/parser'
+extends:
+  - 'eslint:recommended'
+  - 'plugin:react/recommended'
+  - 'plugin:react-hooks/recommended'
+  - 'plugin:@typescript-eslint/recommended'
+  - 'plugin:prettier/recommended'
+plugins:
+  - 'react'
+  - 'react-hooks'
+  - '@typescript-eslint'
+  - 'prettier'
+settings:
+  react:
+    version: detect
+rules:
+  react/react-in-jsx-scope: off
+  '@typescript-eslint/ban-ts-comment': off
+  '@typescript-eslint/no-unused-vars':
+    - error
+    - varsIgnorePattern: '_'
+      ignoreRestSiblings: true
+      args: after-used
+overrides:
+  - files: ['**/*.js']
+    env:
+      node: true
+    rules:
+      '@typescript-eslint/no-var-requires': off

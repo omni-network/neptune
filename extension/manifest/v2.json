@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json.schemastore.org/chrome-manifest.json",
+  "name": "Neptune",
+  "description": "Master of Forks - built by Recursive",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "browser_action": {
+    "default_icon": {
+      "16": "assets/neptune-logo-16x16.png",
+      "48": "assets/neptune-logo-48x48.png",
+      "128": "assets/neptune-logo-128x128.png"
+    },
+    "default_title": "Neptune",
+    "default_popup": "index.html"
+  },
+  "permissions": [
+    "alarms",
+    "downloads",
+    "tabs",
+    "storage",
+    "notifications",
+    "http://localhost/*"
+  ],
+  "icons": {
+    "16": "assets/neptune-logo-16x16.png",
+    "48": "assets/neptune-logo-48x48.png",
+    "128": "assets/neptune-logo-128x128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["inject.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "web_accessible_resources": ["inpage.js"]
+}
