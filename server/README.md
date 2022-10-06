@@ -18,7 +18,7 @@ Get a list of all forks.
 
 #### **Reponse**:
 
-```json
+```jsonc
 {
   "forks": {
     "<fork_id>": {
@@ -38,16 +38,16 @@ Create a new fork
 
 #### **Request Body**:
 
-```json
+```jsonc
 {
    "name": "the-fork-name",
-   "config": {<see ForkConfig object>}
+   "config": {} // see ForkConfig object
 }
 ```
 
 #### **Response**:
 
-```json
+```jsonc
 {
   "fork_id": "<string>"
 }
@@ -59,7 +59,7 @@ Neptune allows creating blank forks and forks of mainnet - _base forks_, and for
 
 ### **_BaseConfig_**:
 
-```json
+```jsonc
 {
   "eth_rpc_url": "string, optional", // optionally specify a mainnet RPC provider
   "fork_block_number": number, optional, // defaults to the current block number
@@ -69,7 +69,7 @@ Neptune allows creating blank forks and forks of mainnet - _base forks_, and for
 
 ### **_ChildConfig_**:
 
-```json
+```jsonc
 {
   "parent_fork_id": "string" // the ID of the parent fork (must be a valid uuid string)
   "fork_block_number": number?, // defaults to the current block number
@@ -86,7 +86,7 @@ Neptune allows creating blank forks and forks of mainnet - _base forks_, and for
 Send an eth or neptune rpc request
 
 #### **Request:**
-```json
+```jsonc
 {
   "id": 1,
   "jsonrpc": "2.0",
@@ -97,7 +97,7 @@ Send an eth or neptune rpc request
 
 #### **Response:**
 
-```json
+```jsonc
 {
   "id": 1,
   "result": "0xasedfasdf"
