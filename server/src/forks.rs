@@ -212,10 +212,10 @@ impl EthFork {
             snapshots: Arc::new(RwLock::new(Vec::new())),
         };
 
-        match fork.snapshot().await{
+        match fork.snapshot().await {
             Ok(_) => Ok(fork),
-            Err(err) => Err(err)
-        }    
+            Err(err) => Err(err),
+        }
     }
 
     pub async fn take_snapshot(&self) -> Result<Snapshot, ForkError> {
