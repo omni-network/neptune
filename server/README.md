@@ -1,6 +1,6 @@
 <image src="./media/trident1.png"/>
 
-# __*Neptune Server*__
+# **_Neptune Server_**
 
 ## quickstart
 
@@ -40,8 +40,8 @@ Create a new fork
 
 ```jsonc
 {
-   "name": "the-fork-name",
-   "config": {} // see ForkConfig object
+  "name": "the-fork-name",
+  "config": {} // see ForkConfig object
 }
 ```
 
@@ -77,15 +77,14 @@ Neptune allows creating blank forks and forks of mainnet - _base forks_, and for
 }
 ```
 
-
 ### _`/forks/{fork_id}`_
 
+#### **_POST_**
 
-#### __*POST*__
-
-Send an eth or neptune rpc request
+Send an eth or anvil rpc request
 
 #### **Request:**
+
 ```jsonc
 {
   "id": 1,
@@ -103,13 +102,17 @@ Send an eth or neptune rpc request
   "result": "0xasedfasdf"
 }
 ```
-#### __*DELETE*__
+
+#### **_DELETE_**
+
 Delete a fork - fails if a fork is referenced by another fork.
 
-#### __*GET*__
+#### **_GET_**
+
 Returns a serialized version of the fork if it exists.
 
-
 ### _`/reset`_
-#### __*DELETE*__
+
+#### **_DELETE_**
+
 clears all forks from memory
