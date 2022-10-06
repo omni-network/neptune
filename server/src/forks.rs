@@ -272,7 +272,16 @@ impl EthFork {
 
     pub async fn step_back(&self, times: usize) -> Result<bool, BlockchainError> {
         let api = self.api.write().await;
-        let requested_block = api.backend.best_number().as_u64() - (times as u64);
+        let best_number = api.backend.best_number().as_u64();
+        if (times as u64) > best_number {
+            return Err(BlockchainError::ForkProvider(ProviderError::CustomError(
+                format!(
+                    "number of revert steps greater than block height. requested : {}, current height: {}",
+                    times, best_number,
+                ),
+            )));
+        }
+        let requested_block = best_number - (times as u64);
         if self.base_block_number > requested_block {
             return Err(BlockchainError::ForkProvider(ProviderError::CustomError(
                 format!(
