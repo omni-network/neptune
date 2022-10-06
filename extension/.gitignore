@@ -1,0 +1,16 @@
+.DS_Store
+Thumbs.db
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.log
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.eslintcache
+
+**/node_modules/
+**/dist/
+.env
+sourcemaps
+coverage

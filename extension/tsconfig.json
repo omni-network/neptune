@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "downlevelIteration": true,
+    "sourceRoot": "/",
+    "inlineSources": true,
+    "isolatedModules": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
+      "shared/*": ["./src/shared/*"],
+      "background/*": ["./src/background/*"],
+      "inpage/*": ["./src/inpage/*"],
+      "ui/*": ["./src/ui/*"],
+      "webpack.config": ["./webpack.config.js"]
+    },
+    "plugins": [
+      {
+        "name": "typescript-styled-plugin"
+      }
+    ]
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["dist", "node_modules"]
+}

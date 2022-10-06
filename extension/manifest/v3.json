@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json.schemastore.org/chrome-manifest.json",
+  "name": "Neptune",
+  "description": "Master of Forks - powered by Rift",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "action": {
+    "default_icon": {
+      "16": "assets/rift-logo-16x16.png",
+      "48": "assets/rift-logo-48x48.png",
+      "128": "assets/rift-logo-128x128.png"
+    },
+    "default_title": "Neptune",
+    "default_popup": "index.html"
+  },
+  "permissions": [
+    "alarms",
+    "downloads",
+    "tabs",
+    "storage",
+    "notifications",
+    "http://localhost/*"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "icons": {
+    "16": "assets/rift-logo-16x16.png",
+    "48": "assets/rift-logo-48x48.png",
+    "128": "assets/rift-logo-128x128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["inject.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": ["inpage.js"]
+    }
+  ]
+}
