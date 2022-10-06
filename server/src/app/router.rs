@@ -9,13 +9,13 @@ use anvil_rpc::request::Request;
 use anvil_server::handler;
 use axum::{
     extract::{rejection::JsonRejection, Extension, Path},
-    http::StatusCode,
     response::{IntoResponse, Response},
     routing::{delete, get, post},
     Json, Router,
 };
 use request::CreateForkRequest;
 use response::{NeptuneError, OkResponse, WithForkIdResponse, WithForksResponse};
+use response::NeptuneResult;
 
 pub fn init(state: NeptuneState) -> Router {
     Router::new()
@@ -57,18 +57,18 @@ pub async fn delete_fork(
     Extension(state): Extension<NeptuneState>,
     Path(fork_id): Path<String>,
 ) -> Response {
-    handle_delete_fork(&state, &fork_id).await
+    handle_delete_fork(&state, &fork_id).await.into_response()
 }
 
-async fn handle_delete_fork(state: &NeptuneState, fork_id: &String) -> Response {
+async fn handle_delete_fork(state: &NeptuneState, fork_id: &String) -> NeptuneResult {
     let mut forks = state.forks.write().await;
     let fork = forks.get(&fork_id.clone());
 
     match fork {
         Some(f) => {
             if f.children.len() > 0 {
-                NeptuneError::ForkError(ForkError::Readonly(format!("{:?}", f.children)))
-                    .into_response()
+                NeptuneError::ForkError(ForkError::Readonly(format!("{:?}", f.children))).into()
+                    
             } else {
                 //if this is a child fork, we want to remove the fork id from the parent
                 match f.config.clone() {
@@ -85,10 +85,10 @@ async fn handle_delete_fork(state: &NeptuneState, fork_id: &String) -> Response 
                         let _ = forks.remove(&fork_id.clone());
                     }
                 }
-                OkResponse { ok: true }.into_response()
+                NeptuneResult::from(OkResponse::default())
             }
         }
-        None => NeptuneError::ForkError(ForkError::ForkNotFound(fork_id.clone())).into_response(),
+        None => NeptuneError::from(ForkError::ForkNotFound(fork_id.clone())).into(),
     }
 }
 
@@ -106,17 +106,19 @@ pub async fn handle_rpc(
         return res.into_response();
     }
 
-    NeptuneError::ForkError(ForkError::ForkNotFound(fork_id)).into_response()
+    NeptuneResult::from(NeptuneError::ForkError(ForkError::ForkNotFound(fork_id))).into_response()
 }
 
 #[axum_macros::debug_handler]
 pub async fn get_fork(
     Extension(state): Extension<NeptuneState>,
     Path(fork_id): Path<String>,
-) -> Result<Response, NeptuneError> {
+) -> NeptuneResult {
     let forks = state.forks.read().await;
     match forks.get(&fork_id) {
-        Some(fork) => Ok((StatusCode::OK, Json(fork)).into_response()),
-        None => Err(NeptuneError::ForkError(ForkError::ForkNotFound(fork_id))),
+        Some(fork) => {
+            NeptuneResult::from(fork.clone())
+        }
+        None => NeptuneResult::from(NeptuneError::from(ForkError::ForkNotFound(fork_id))),
     }
 }

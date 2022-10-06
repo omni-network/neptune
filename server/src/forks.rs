@@ -22,7 +22,7 @@ use std::{fmt::Debug, sync::Arc};
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Serialize, PartialEq, Eq, Clone)]
 pub enum ForkError {
     #[error("cannot set base block number to {0}, current base is {1}")]
     BaseTooLow(u64, u64),
@@ -40,13 +40,6 @@ pub enum ForkError {
     SnapshotFailed(),
     #[error("fork is currently readonly because it has children {0} ")]
     Readonly(String),
-    #[error(transparent)]
-    BlockchainError(BlockchainError),
-}
-
-pub enum ForkOrBlockchainError {
-    Forkerror(ForkError),
-    BlockchainError(BlockchainError),
 }
 
 fn into_response(err: impl Error) -> axum::response::Response {
