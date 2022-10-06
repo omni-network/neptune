@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 #[derive(Clone)]
 pub struct HttpNeptuneRpcHandler {
-    // might be worth thread saving this too
+    // might be worth wrapping in an Arc<RwLock<...>>
     fork: EthFork,
 }
 

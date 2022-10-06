@@ -14,8 +14,8 @@ use axum::{
     Json, Router,
 };
 use request::CreateForkRequest;
-use response::{NeptuneError, OkResponse, WithForkIdResponse, WithForksResponse};
 use response::NeptuneResult;
+use response::{NeptuneError, OkResponse, WithForkIdResponse, WithForksResponse};
 
 pub fn init(state: NeptuneState) -> Router {
     Router::new()
@@ -33,23 +33,18 @@ pub async fn clear_forks(Extension(state): Extension<NeptuneState>) -> Response 
     OkResponse { ok: true }.into_response()
 }
 
-pub async fn get_forks(Extension(state): Extension<NeptuneState>) -> Response {
-    let forks = state.forks.read().await;
-    WithForksResponse {
-        forks: forks.clone(),
-    }
-    .into_response()
-}
-
 #[axum_macros::debug_handler]
 pub async fn create_fork(
     body: Json<CreateForkRequest>,
     Extension(state): Extension<NeptuneState>,
-) -> Result<Response, ForkError> {
+) -> NeptuneResult {
     let fork_id = state
         .create_fork(body.config.clone(), body.name.clone())
-        .await?;
-    Ok(WithForkIdResponse { fork_id }.into_response())
+        .await;
+    match fork_id {
+        Ok(fork_id) => NeptuneResult::from(WithForkIdResponse { fork_id }),
+        Err(err) => NeptuneError::from(err).into(),
+    }
 }
 
 #[axum_macros::debug_handler]
@@ -68,7 +63,6 @@ async fn handle_delete_fork(state: &NeptuneState, fork_id: &String) -> NeptuneRe
         Some(f) => {
             if f.children.len() > 0 {
                 NeptuneError::ForkError(ForkError::Readonly(format!("{:?}", f.children))).into()
-                    
             } else {
                 //if this is a child fork, we want to remove the fork id from the parent
                 match f.config.clone() {
@@ -116,9 +110,15 @@ pub async fn get_fork(
 ) -> NeptuneResult {
     let forks = state.forks.read().await;
     match forks.get(&fork_id) {
-        Some(fork) => {
-            NeptuneResult::from(fork.clone())
-        }
+        Some(fork) => NeptuneResult::from(fork.clone()),
         None => NeptuneResult::from(NeptuneError::from(ForkError::ForkNotFound(fork_id))),
     }
+}
+
+pub async fn get_forks(Extension(state): Extension<NeptuneState>) -> Response {
+    let forks = state.forks.read().await;
+    WithForksResponse {
+        forks: forks.clone(),
+    }
+    .into_response()
 }

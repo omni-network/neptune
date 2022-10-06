@@ -37,7 +37,7 @@ impl From<EthFork> for NeptuneResult {
         let fork = serde_json::to_value(fork);
         match fork {
             Ok(value) => NeptuneResult::Success(value),
-            Err(e) => NeptuneResult::Error(NeptuneError::CustomError(e.to_string()))
+            Err(e) => NeptuneResult::Error(NeptuneError::CustomError(e.to_string())),
         }
     }
 }
@@ -46,17 +46,25 @@ impl From<OkResponse> for NeptuneResult {
         let fork = serde_json::to_value(fork);
         match fork {
             Ok(value) => NeptuneResult::Success(value),
-            Err(e) => NeptuneResult::Error(NeptuneError::CustomError(e.to_string()))
+            Err(e) => NeptuneResult::Error(NeptuneError::CustomError(e.to_string())),
         }
     }
 }
 
-
+impl From<WithForkIdResponse> for NeptuneResult {
+    fn from(fork: WithForkIdResponse) -> Self {
+        let fork = serde_json::to_value(fork);
+        match fork {
+            Ok(value) => NeptuneResult::Success(value),
+            Err(e) => NeptuneResult::Error(NeptuneError::CustomError(e.to_string())),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize)]
 pub enum NeptuneError {
-    ForkError(ForkError),
     #[serde(rename = "error")]
+    ForkError(ForkError),
     RpcError(RpcError),
     CustomError(String),
 }
