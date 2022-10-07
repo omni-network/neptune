@@ -175,13 +175,12 @@ export class NeptuneController {
    * Rpc requests
    */
 
-  async sendRpcRequest(data: RpcRequest) {
+  async sendRpcRequest(data: RpcRequest | RpcRequest[]) {
     if (!this.forkRpcUrl) throw new Error('No active fork')
 
-    const body = JSON.stringify({
-      ...data,
-      id: data.id ?? null,
-    })
+    const body = JSON.stringify(
+      Array.isArray(data) ? data.map(addIdd) : addIdd(data),
+    )
 
     return fetch(this.forkRpcUrl, {
       method: 'POST',
@@ -193,3 +192,10 @@ export class NeptuneController {
     }).then(res => res.json())
   }
 }
+
+// small util to add null id to rpc requests if not present
+// anvil treats empty id as invalid
+const addIdd = (data: any) => ({
+  ...data,
+  id: data.id ?? null,
+})
