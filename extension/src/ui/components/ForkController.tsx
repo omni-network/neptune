@@ -3,7 +3,8 @@ import { AiFillCaretLeft, AiFillCaretRight } from 'react-icons/ai'
 import { MdClear } from 'react-icons/md'
 import { Alert } from '@mui/material'
 import { LoadingButton as Button } from '@mui/lab'
-import { useBacktrack } from 'ui/mutations'
+import { useStepBack, useReset } from 'ui/mutations'
+import { parseErrorMessage } from 'shared/utils/error'
 
 const Container = styled.div`
   display: flex;
@@ -25,23 +26,32 @@ const Controls = styled.div`
 `
 
 const ForkController = () => {
-  const { mutate: backtrack, isLoading, isSuccess, error } = useBacktrack()
+  const reset = useReset()
+  const stepback = useStepBack()
 
-  const disabled = isLoading
+  const error = reset.error ?? stepback.error
+  const success = reset.isSuccess || stepback.isSuccess
+  const disabled = reset.isLoading || stepback.isLoading
 
   return (
     <Container>
-      {error ? <Alert severity="error">{(error as any).message}</Alert> : null}
-      {isSuccess && <Alert severity="success">Success!</Alert>}
-      {isLoading && <Alert severity="info">Loading...</Alert>}
+      {error ? (
+        <Alert severity="error">{parseErrorMessage(error)}</Alert>
+      ) : null}
+      {success && <Alert severity="success">Success!</Alert>}
       <Controls>
         <Button
-          onClick={() => backtrack({ backOnce: true })}
+          onClick={() => stepback.mutate()}
           disabled={disabled}
+          loading={stepback.isLoading}
         >
           <AiFillCaretLeft />
         </Button>
-        <Button onClick={() => backtrack({ reset: true })} disabled={disabled}>
+        <Button
+          onClick={() => reset.mutate()}
+          disabled={disabled}
+          loading={reset.isLoading}
+        >
           <MdClear />
         </Button>
         <Button
