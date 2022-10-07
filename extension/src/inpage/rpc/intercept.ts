@@ -49,6 +49,9 @@ const tryGetChainId = async (url: URL | RequestInfo) => {
   try {
     const chainId = await fetch(url, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 0,
@@ -80,12 +83,11 @@ const interceptRpcRequests =
 
     // only intercept mainnet requests
     if (!resourcesToIntercept.has(resource.toString())) {
-      const shouldIntercept = (await tryGetChainId(resource)) === '0x1'
-      resourcesToIntercept.set(resource.toString(), shouldIntercept)
+      const chainId = await tryGetChainId(resource)
+      resourcesToIntercept.set(resource.toString(), chainId === '0x1')
     }
 
     if (!resourcesToIntercept.get(resource.toString())) return fetch(...args)
-
     return new Response(JSON.stringify(await msg.rpc.sendRequest(body)))
   }
 
