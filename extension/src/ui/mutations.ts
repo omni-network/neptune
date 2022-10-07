@@ -5,8 +5,10 @@ import msg from 'background/messages'
 import { createFork, forkMainnetLatest, backtrack } from 'shared/mutations'
 import { client } from './client'
 
-// lil trick to force reloads
-const forceReloads = () => msg.forkRpcUrl.get().then(msg.forkRpcUrl.emitChanged)
+// lil trick to force reload
+// we cannot "emit changed" because the ui does not run within the same context
+// as the background script
+const forceReloads = async () => msg.baseUrl.get().then(msg.baseUrl.set)
 
 interface UseCreateForkOptions {
   onSuccess?: (fork: Fork) => void
@@ -21,6 +23,7 @@ export const useCreateFork = ({
     onSuccess: fork => {
       if (switchOnSuccess) msg.fork.set(fork)
       if (onSuccess) onSuccess(fork)
+      client.invalidateQueries('available-forks')
     },
   })
 
@@ -57,9 +60,14 @@ export const useForkMainnetLatest = () =>
     onSuccess: fork => msg.fork.set(fork),
   })
 
-export const useBacktrack = () =>
-  useMutation(backtrack, {
-    onSuccess: forceReloads,
+export const useStepBack = () =>
+  useMutation(() => backtrack({ backOnce: true }), {
+    onSuccess: () => forceReloads(),
+  })
+
+export const useReset = () =>
+  useMutation(() => backtrack({ reset: true }), {
+    onSuccess: () => forceReloads(),
   })
 
 export const useConnection = () => useMutation(msg.connection.set)
