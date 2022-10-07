@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Input, Tooltip } from '@mui/material'
+import { Input, Alert } from '@mui/material'
 import { Fork } from 'shared/types'
-import { MdError } from 'react-icons/md'
 import { LoadingButton as Button } from '@mui/lab'
 import { formatLongString } from 'ui/utils/format'
 import { useCreateFork } from 'ui/mutations'
+import { parseErrorMessage } from 'shared/utils/error'
 import AvailableForksSelect from './AvailableForksSelect'
 
 const AddFork = () => {
@@ -46,14 +46,8 @@ const AddFork = () => {
         sx={{ margin: '1rem 0' }}
       >
         {from ? `Fork from ${formatLongString(from.id)}` : 'Blank Fork'}
-        {error ? (
-          <Tooltip title={(error as any).message}>
-            <span>
-              <MdError />
-            </span>
-          </Tooltip>
-        ) : null}
       </Button>
+      {!!error && <Alert severity="error">{parseErrorMessage(error)}</Alert>}
     </>
   )
 }
