@@ -1,13 +1,10 @@
-import browser from 'webextension-polyfill'
 import {
   waitForMessage,
   sendMessage,
   streamFor,
   justMessage,
-  justSender,
 } from 'background/messages/core'
-import { sendTo, emit } from 'background/messages/utils'
-import { tabs } from 'background/messages/tabs'
+import { sendTo } from 'background/messages/utils'
 import { parseErrorMessage } from 'shared/utils/error'
 
 type Connection = {

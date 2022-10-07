@@ -1,6 +1,5 @@
 import browser from 'webextension-polyfill'
 import { useState, useEffect } from 'react'
-import msg from 'background/messages'
 import { useIsConnected } from 'ui/queries'
 import { useConnection } from 'ui/mutations'
 
@@ -25,15 +24,6 @@ const useActiveTabId = () => {
 
   return tabId
 }
-
-const useOnActiveTabChange = (onChange: (tabId: number) => void) => {
-  useEffect(() => {
-    const _onChange = (tab: browser.tabs.TabActiveInfo) => onChange(tab.tabId)
-    browser.tabs.onActivated.addListener(_onChange)
-    return () => browser.tabs.onActivated.removeListener(_onChange)
-  }, [])
-}
-
 
 export const useActiveTab = () => {
   const tabId = useActiveTabId()

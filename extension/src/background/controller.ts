@@ -4,7 +4,6 @@ import msg from './messages'
 import url from './utils/url'
 import { store } from './storage'
 import { getAvailableForks, getFork } from 'shared/queries'
-import { forkMainnetLatest } from 'shared/mutations'
 
 export class NeptuneController {
   private _baseUrl = new URL('http://localhost:1738')

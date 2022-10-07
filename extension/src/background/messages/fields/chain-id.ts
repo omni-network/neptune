@@ -1,5 +1,4 @@
 import { ChainId } from 'shared/types'
-import { Sender } from 'shared/messages'
 import {
   waitForMessage,
   sendMessage,
@@ -34,7 +33,7 @@ export function onSet(set: (chaindId: ChainId) => void) {
 
     try {
       set(msg.data.chainId),
-      sendTo({ type, success: true, data: msg.data }, sender)
+        sendTo({ type, success: true, data: msg.data }, sender)
     } catch (e) {
       sendTo({ type, success: false, error: parseErrorMessage(e) }, sender)
     }
@@ -44,7 +43,7 @@ export function onSet(set: (chaindId: ChainId) => void) {
 export async function set(chainId: ChainId) {
   sendMessage({ type: 'set-chain-id', data: { chainId } })
 
-  const res =  await waitForMessage('set-chain-id__response')
+  const res = await waitForMessage('set-chain-id__response')
   if (!res.success) throw new Error(res.error)
 
   return res.data

@@ -7,5 +7,5 @@ const fork = (base: URL | string, fork: Fork) =>
 
 export default {
   forks,
-  fork
+  fork,
 }

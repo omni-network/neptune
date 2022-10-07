@@ -18,7 +18,7 @@ script.setAttribute('data-extension-id', extensionId)
 container.insertBefore(script, container.children[0])
 
 inpage.messageStream.subscribe(msg => {
-    if (!msg.forwarded) background.sendMessage(msg)
+  if (!msg.forwarded) background.sendMessage(msg)
 })
 
 background.justMessage(background.messageStream).subscribe(msg => {

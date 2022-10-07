@@ -28,7 +28,10 @@ const Home = () => {
       </div>
       <Footer>
         <ForkController />
-        <Button sx={{ padding: '1rem 3rem', width: '100%' }} onClick={disconnect}>
+        <Button
+          sx={{ padding: '1rem 3rem', width: '100%' }}
+          onClick={disconnect}
+        >
           Disconnect
         </Button>
       </Footer>

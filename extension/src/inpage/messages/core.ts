@@ -23,10 +23,7 @@ export const messageStream = fromEvent<MessageEvent>(window, 'message').pipe(
 export async function waitForMessage<
   K extends WindowMessage['type'],
   M extends { type: K } & WindowMessage,
->(
-  type: K,
-  predicate?: (m: M) => boolean,
-): Promise<M> {
+>(type: K, predicate?: (m: M) => boolean): Promise<M> {
   const msg = await firstValueFrom(
     messageStream.pipe(
       timeout(30000),

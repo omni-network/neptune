@@ -44,7 +44,7 @@ export function onSet(set: (fork: Fork | null, sender?: Sender) => void) {
 export async function set(forkId: Fork | null) {
   sendMessage({ type: 'set-fork', data: { fork: forkId } })
 
-  const res =  await waitForMessage('set-fork__response')
+  const res = await waitForMessage('set-fork__response')
   if (!res.success) throw new Error(res.error)
 
   return res.data

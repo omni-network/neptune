@@ -17,4 +17,3 @@ export async function sendRequest(data: RpcRequest) {
   const msg = await waitForMessage('rpc-response', msg => msg.id === id)
   return msg.data
 }
-

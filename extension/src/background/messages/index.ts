@@ -15,5 +15,5 @@ export default {
   fork,
   forkRpcUrl,
   providerRpcUrl,
-  rpc
+  rpc,
 }

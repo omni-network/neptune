@@ -1,13 +1,6 @@
-import {
-  Message,
-  Sender,
-  MessageFor,
-  MessageData,
-  SetResponseMessageType,
-} from 'shared/messages'
-import { parseErrorMessage } from 'shared/utils/error'
+import { Message, Sender } from 'shared/messages'
 import { tabs } from './tabs'
-import { waitForMessage, sendMessage } from './core'
+import { sendMessage } from './core'
 
 export function sendTo(
   msg: Message,

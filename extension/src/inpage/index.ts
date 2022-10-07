@@ -7,4 +7,5 @@ import { initRpcIntercept } from './rpc/intercept'
 export const provider = new InjectedNeptuneProvider({ rpcMiddleware })
 
 initRpcIntercept()
+
 msg.forkRpcUrl.onChanged(() => window.location.reload())

@@ -1,5 +1,4 @@
 import { Account } from 'shared/types'
-import { Sender } from 'shared/messages'
 import {
   waitForMessage,
   sendMessage,

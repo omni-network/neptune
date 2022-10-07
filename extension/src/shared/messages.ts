@@ -130,8 +130,6 @@ export type SetResponseMessageType = Extract<
   { type: `set-${string}__response` }
 >['type']
 
-type D = MessageData<SetResponseMessageType>
-
 export type WindowMessage = Message & {
   forwarded?: boolean
   extensionId: string

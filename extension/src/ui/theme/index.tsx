@@ -1,5 +1,5 @@
 import { createTheme } from '@mui/material/styles'
-import { createGlobalStyle, } from 'styled-components'
+import { createGlobalStyle } from 'styled-components'
 import { normalize } from 'styled-normalize'
 
 export const colors = {
@@ -9,9 +9,8 @@ export const colors = {
   green: '#70ffba',
   blue: '#30CCCC',
   red: '#d01919',
-  yellow: '#eaae00'
+  yellow: '#eaae00',
 } as const
-
 
 export const FixedGlobalStyle = createGlobalStyle`
   ${normalize}

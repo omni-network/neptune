@@ -7,7 +7,7 @@ import ConnectPage from 'ui/pages/Connect'
  * Default layout for each page.
  */
 const Layout = () => {
-  const { disconnect, connected } = useActiveTab()
+  const { connected } = useActiveTab()
 
   if (!connected) return <ConnectPage />
 

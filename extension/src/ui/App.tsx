@@ -1,11 +1,6 @@
-import { ThemeProvider as MuiThemeProvider, } from '@mui/material'
+import { ThemeProvider as MuiThemeProvider } from '@mui/material'
 import { QueryClientProvider } from 'react-query'
-import {
-  Routes,
-  Route,
-  Outlet,
-  Navigate,
-} from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { client } from './client'
 import ErrorBoundary from './components/ErrorBoundary'
 import Accounts from './pages/Accounts'
@@ -14,7 +9,6 @@ import Home from './pages/Home'
 import Settings from './pages/Settings'
 import Layout from './pages/Layout'
 import { FixedGlobalStyle, theme } from './theme'
-
 
 export const App = () => (
   <QueryClientProvider client={client}>

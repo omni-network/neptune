@@ -8,13 +8,13 @@ export const [sendMessage, messageStream, _waitForMessage] =
 
 export const waitForMessage = async <
   T extends Message['type'],
-  M extends MessageFor<T> = MessageFor<T>
+  M extends MessageFor<T> = MessageFor<T>,
 >(
   type: T,
   predicate?: (m: M) => boolean,
 ) => {
-  return (await _waitForMessage(([msg]: any) =>
-    msg.type === type && (predicate ? predicate(msg) : true),
+  return (await _waitForMessage(
+    ([msg]: any) => msg.type === type && (predicate ? predicate(msg) : true),
   ).then(([msg]: any) => msg)) as M
 }
 

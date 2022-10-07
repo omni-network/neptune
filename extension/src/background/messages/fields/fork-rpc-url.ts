@@ -7,7 +7,6 @@ import {
 } from 'background/messages/core'
 import { sendTo, emit } from 'background/messages/utils'
 
-
 export function onGet(get: () => string | null) {
   justSender(streamFor('get-fork-rpc-url')).subscribe(target =>
     sendTo(

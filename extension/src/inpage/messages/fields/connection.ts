@@ -10,7 +10,6 @@ export async function get() {
   return data.connected
 }
 
-
 export async function set(connected: boolean) {
   sendMessage({ type: 'set-connection', data: { connected } })
   const msg = await waitForMessage('set-connection__response')

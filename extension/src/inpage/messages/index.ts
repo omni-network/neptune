@@ -9,5 +9,5 @@ export default {
   chain,
   connection,
   forkRpcUrl,
-  rpc
+  rpc,
 }
