@@ -2,7 +2,7 @@
 
 # ｎｅｐｔｕｎｅ
 
-## God of the sea, master of the trident (forks)
+#### God of the sea, master of the trident (forks)
 
 Neptune is a browser wallet for developers. It consists of a browser extension
 and a local backend, with which you can manage state across multiple dev
