@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { FormControl, Input, Tooltip } from '@mui/material'
-import { MdError } from 'react-icons/md'
+import { FormControl, Input, Alert } from '@mui/material'
 import { LoadingButton as Button } from '@mui/lab'
 import { Account } from 'shared/types'
 import { useAddAccount } from 'ui/mutations'
+import { parseErrorMessage } from 'shared/utils/error'
 
 const AddAccount = () => {
   const [accountToAdd, setAccountToAdd] = useState('')
-  const { mutate: addAccount, error } = useAddAccount()
+  const { mutate: addAccount, error, isSuccess } = useAddAccount()
 
   return (
     <FormControl
@@ -22,17 +22,9 @@ const AddAccount = () => {
         onChange={e => setAccountToAdd(e.target.value)}
         placeholder="New account"
         sx={{ marginBottom: '1rem' }}
-        endAdornment={
-          error ? (
-            <Tooltip title={(error as any).message}>
-              <span>
-                <MdError />
-              </span>
-            </Tooltip>
-          ) : null
-        }
       />
       <Button
+        sx={{ marginBottom: '1rem' }}
         disabled={!accountToAdd}
         onClick={() =>
           addAccount(accountToAdd as Account, {
@@ -42,6 +34,8 @@ const AddAccount = () => {
       >
         Add Account
       </Button>
+      {!!error && <Alert severity="error">{parseErrorMessage(error)}</Alert>}
+      {isSuccess && <Alert severity="success">Success!</Alert>}
     </FormControl>
   )
 }

@@ -1,6 +1,7 @@
 import msg from 'background/messages'
 import { getAvailableForks } from 'shared/queries'
 import { useQuery } from 'react-query'
+import { forkMainnetLatest } from 'shared/mutations'
 import { client } from './client'
 
 export const useAccounts = () => useQuery('accounts', msg.accounts.get)
@@ -12,7 +13,19 @@ export const useProviderRpcUrl = () =>
   useQuery('provider-rpc-url', msg.providerRpcUrl.get)
 
 export const useAvailableForks = () =>
-  useQuery('available-forks', () => getAvailableForks())
+  useQuery('available-forks', async () => {
+    const forks = await getAvailableForks()
+
+    if (!forks.length) {
+      const fork = await forkMainnetLatest()
+      return [fork]
+    } else {
+      const fork = await msg.fork.get()
+      if (!fork) msg.fork.set(fork)
+    }
+
+    return forks
+  })
 
 export const useIsConnected = (tabId: number | null) => {
   return useQuery(

@@ -31,16 +31,13 @@ export const getFork = async (
   fork: Fork,
   opts: {
     baseUrl?: URL | string
-    onNotFound?: () => void
+    onError?: () => void
   } = {},
 ): Promise<Fork | null> => {
   const base = opts.baseUrl ?? (await msg.baseUrl.get())
-  const res = await fetch(url.fork(base, fork))
+  const res = await fetch(url.fork(base, fork)).catch(opts.onError)
 
-  if (res.status === 404) {
-    if (opts.onNotFound) opts.onNotFound()
-    return null
-  }
-
-  return res.json()
+  if (res && res.status === 200) return res.json()
+  if (opts.onError) opts.onError()
+  return null
 }

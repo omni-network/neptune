@@ -4,6 +4,7 @@ import msg from './messages'
 import url from './utils/url'
 import { store } from './storage'
 import { getAvailableForks, getFork } from 'shared/queries'
+import { impersonateAll } from 'shared/mutations'
 
 export class NeptuneController {
   private _baseUrl = new URL('http://localhost:1738')
@@ -13,11 +14,7 @@ export class NeptuneController {
   private _fork: Fork | null = null
   private _connectedTabs = new Set<number>()
 
-  /**
-   * Add msg handlers. Initialize state from storage. If no fork is active
-   * choose an available fork. If none or available, fork mainnet.
-   */
-  async init() {
+  constructor() {
     // register get handlers
     msg.accounts.onGet(() => this.accounts)
     msg.chain.onGet(() => this.chainId)
@@ -41,7 +38,13 @@ export class NeptuneController {
 
     // rpc request handler
     msg.rpc.onRequest(this.sendRpcRequest.bind(this))
+  }
 
+  /**
+   * Initialize state from storage. If no fork is active
+   * choose an available fork. If none or available, fork mainnet.
+   */
+  async init() {
     // init state from storage
     const { accounts, fork, providerRpcUrl, baseUrl, chainId } =
       await store.get()
@@ -56,17 +59,25 @@ export class NeptuneController {
     )
 
     // get or create a fork if necessary
-    // reset current fork if it no longer exists
+    // reset current fork if it cannot be found
     if (!fork) {
       await getAvailableForks(this._baseUrl)
         .then(forks => forks[0] ?? null)
         .then(fork => this.setFork(fork))
     } else {
-      getFork(fork, {
+      await getFork(fork, {
         baseUrl: this._baseUrl,
-        onNotFound: () => this.setFork(null),
+        onError: () => this.setFork(null),
       })
     }
+
+    // make sure we impersonal all accounts
+    const _impersonateAll = async () => {
+      impersonateAll(this._accounts, this.forkRpcUrl)
+    }
+
+    msg.forkRpcUrl.onChanged(_impersonateAll)
+    _impersonateAll()
   }
 
   /**

@@ -11,9 +11,7 @@ const SelectAccount = () => {
   if (accounts == null) return null
 
   return (
-    <FormControl
-      sx={{ width: '100%', fontSize: '0.75em', marginBottom: '1rem' }}
-    >
+    <FormControl sx={{ width: '100%', fontSize: '0.75em', margin: '1rem 0' }}>
       <InputLabel id="accounts-select">Account</InputLabel>
       <Select
         onChange={e => selectAccount(e.target.value as Account)}

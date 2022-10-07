@@ -1,4 +1,4 @@
-import { Fork } from './types'
+import { Fork, Account } from './types'
 import msg from 'background/messages'
 import url from 'background/utils/url'
 import { latestBlock } from './queries'
@@ -95,4 +95,36 @@ export const backtrack = async (opts: BacktrackOptions) => {
   if (!r.result) throw new Error('Backtrack failed')
 
   return r.result
+}
+
+export const impersonate = async (
+  account: Account,
+  url?: URL | string | null,
+) => {
+  if (!url) url = await msg.forkRpcUrl.get()
+  if (!url) throw new Error('No fork rpc url set')
+
+  const r = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'anvil_impersonateAccount',
+      params: [account],
+      id: 1,
+    }),
+    headers: { 'Content-Type': 'application/json' },
+  }).then(res => res.json())
+
+  if (r.error) throw new Error(r.error.message ?? r.error)
+
+  return r.result
+}
+
+export const impersonateAll = async (
+  accounts: Account[],
+  url?: URL | string | null,
+) => {
+  for (const account of accounts) {
+    await impersonate(account, url)
+  }
 }

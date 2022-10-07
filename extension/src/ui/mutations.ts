@@ -2,7 +2,13 @@ import { useMutation } from 'react-query'
 import { Account, Fork } from 'shared/types'
 import { ethers } from 'ethers'
 import msg from 'background/messages'
-import { createFork, forkMainnetLatest, backtrack } from 'shared/mutations'
+import {
+  createFork,
+  forkMainnetLatest,
+  backtrack,
+  impersonate,
+  impersonateAll,
+} from 'shared/mutations'
 import { client } from './client'
 
 // lil trick to force reload
@@ -38,8 +44,11 @@ export const selectAccount = async (
   if (!ethers.utils.isAddress(account))
     throw new Error('Invalid account address')
 
-  if (!addIfNotFound && !accounts.includes(account))
-    throw new Error('Account not found')
+  const notFound = !accounts.includes(account)
+
+  if (!addIfNotFound && notFound) throw new Error('Account not found')
+
+  if (notFound) await impersonate(account)
 
   if (account === accounts[0]) return
 
@@ -73,3 +82,9 @@ export const useReset = () =>
 export const useConnection = () => useMutation(msg.connection.set)
 export const useSetBaseUrl = () => useMutation(msg.baseUrl.set)
 export const useSetProviderRpcUrl = () => useMutation(msg.providerRpcUrl.set)
+
+export const useImpersonateAll = () =>
+  useMutation(async () => {
+    const accounts = await msg.accounts.get()
+    await impersonateAll(accounts)
+  })

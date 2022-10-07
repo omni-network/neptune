@@ -35,9 +35,7 @@ const ForkController = () => {
 
   return (
     <Container>
-      {error ? (
-        <Alert severity="error">{parseErrorMessage(error)}</Alert>
-      ) : null}
+      {!!error && <Alert severity="error">{parseErrorMessage(error)}</Alert>}
       {success && <Alert severity="success">Success!</Alert>}
       <Controls>
         <Button
