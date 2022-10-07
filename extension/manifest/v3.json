@@ -6,9 +6,9 @@
   "manifest_version": 3,
   "action": {
     "default_icon": {
-      "16": "assets/rift-logo-16x16.png",
-      "48": "assets/rift-logo-48x48.png",
-      "128": "assets/rift-logo-128x128.png"
+      "16": "assets/neptune-logo-16x16.png",
+      "48": "assets/neptune-logo-48x48.png",
+      "128": "assets/neptune-logo-128x128.png"
     },
     "default_title": "Neptune",
     "default_popup": "index.html"
@@ -25,9 +25,9 @@
     "<all_urls>"
   ],
   "icons": {
-    "16": "assets/rift-logo-16x16.png",
-    "48": "assets/rift-logo-48x48.png",
-    "128": "assets/rift-logo-128x128.png"
+    "16": "assets/neptune-logo-16x16.png",
+    "48": "assets/neptune-logo-48x48.png",
+    "128": "assets/neptune-logo-128x128.png"
   },
   "content_scripts": [
     {
