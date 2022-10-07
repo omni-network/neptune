@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 #[derive(Clone)]
 pub struct HttpNeptuneRpcHandler {
-    // might be worth thread safing this too
+    // might be worth wrapping in an Arc<RwLock<...>>
     fork: EthFork,
 }
 
@@ -51,7 +51,7 @@ impl HttpNeptuneRpcHandler {
 
         match request {
             EthRequest::EthSendTransaction(_) | EthRequest::EthSendRawTransaction(_) => {
-                self.fork.snapshot().await;
+                let _ = self.fork.snapshot().await;
             }
             _ => {}
         }

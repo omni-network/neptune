@@ -13,12 +13,44 @@ use anvil::{
     service::NodeService,
     NodeConfig,
 };
-use ethers::prelude::U256;
+use axum::{http::StatusCode, response::IntoResponse};
+use ethers::{prelude::U256, providers::ProviderError};
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{collections::HashSet, error::Error};
+use std::{fmt::Debug, sync::Arc};
 use tokio::sync::RwLock;
 use uuid::Uuid;
+
+#[derive(thiserror::Error, Debug, Serialize, PartialEq, Eq, Clone)]
+pub enum ForkError {
+    #[error("cannot set base block number to {0}, current base is {1}")]
+    BaseTooLow(u64, u64),
+    #[error("cannot set base block number to {0}, current best block is {1}")]
+    BaseTooHigh(u64, u64),
+    #[error("cannot step back to {0}, base block number is {1}")]
+    StepBackError(u64, u64),
+    #[error("provided id is not a valid UUID: {0}")]
+    InvalidForkId(String),
+    #[error("fork with id ({0}) not found")]
+    ForkNotFound(String),
+    #[error("snapshot with id {0} not found")]
+    SnapshotNotFound(usize),
+    #[error("snapshot failed to be created")]
+    SnapshotFailed(),
+    #[error("fork is currently readonly because it has children {0} ")]
+    Readonly(String),
+}
+
+fn into_response(err: impl Error) -> axum::response::Response {
+    (StatusCode::BAD_REQUEST, err.to_string()).into_response()
+}
+
+impl IntoResponse for ForkError {
+    fn into_response(self) -> axum::response::Response {
+        into_response(self)
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Snapshot {
@@ -29,13 +61,133 @@ pub struct Snapshot {
     pub block_number: u64,
 }
 
+// splitting this up into two structs because we have distinct control flows for instantiating
+// an independent fork and for instantiating a recursive fork.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+#[serde(deny_unknown_fields)]
+pub enum ForkConfig {
+    Child(ChildConfig),
+    Base(BaseConfig),
+}
+
+impl ForkConfig {
+    pub fn prefund_anvil_accounts(self) -> bool {
+        match self {
+            ForkConfig::Child(ChildConfig {
+                prefund_anvil_accounts,
+                ..
+            }) => prefund_anvil_accounts,
+            ForkConfig::Base(BaseConfig {
+                prefund_anvil_accounts,
+                ..
+            }) => prefund_anvil_accounts,
+        }
+    }
+}
+
+impl Default for ForkConfig {
+    fn default() -> Self {
+        Self::Base(BaseConfig::default())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+pub struct ChildConfig {
+    /// url of the rpc server that should be used for any rpc calls
+    #[serde(skip)]
+    eth_rpc_url: String,
+    // optionally specify a parent fork
+    pub parent_fork_id: String,
+    /// pins the block number for the state fork
+    pub fork_block_number: Option<u64>,
+    /// whether or not to prefund anvil dev accounts
+    pub prefund_anvil_accounts: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BaseConfig {
+    /// url of the rpc server that should be used for any rpc calls
+    pub eth_rpc_url: Option<String>,
+    /// pins the block number for the state fork
+    pub fork_block_number: Option<u64>,
+    /// whether or not to prefund anvil dev accounts
+    pub prefund_anvil_accounts: bool,
+}
+
+// we should have the default behavior to provide pre-funded accounts
+// so beginning users have something to play with out of the box
+impl Default for BaseConfig {
+    fn default() -> Self {
+        Self {
+            eth_rpc_url: None,
+            fork_block_number: None,
+            prefund_anvil_accounts: true,
+        }
+    }
+}
+impl TryInto<NodeConfig> for ChildConfig {
+    type Error = ForkError;
+
+    fn try_into(self) -> Result<NodeConfig, Self::Error> {
+        let fork_id = validate_fork_id(self.parent_fork_id.clone());
+        match fork_id {
+            Ok(_) => Ok(NodeConfig {
+                ..Default::default()
+            }),
+            Err(_) => Err(Self::Error::InvalidForkId(self.parent_fork_id)),
+        }
+    }
+}
+
+impl ChildConfig {
+    pub fn set_eth_rpc_url(&mut self, host: String, port: u16) -> Result<(), ForkError> {
+        let valid = validate_fork_id(self.parent_fork_id.clone());
+        match valid {
+            Ok(_) => {
+                self.eth_rpc_url = format!("{}:{}/forks/{}", host, port, self.parent_fork_id);
+                Ok(())
+            }
+            Err(_) => Err(ForkError::InvalidForkId(self.parent_fork_id.clone())),
+        }
+    }
+}
+
+impl TryInto<NodeConfig> for BaseConfig {
+    type Error = ForkError;
+
+    fn try_into(self) -> Result<NodeConfig, Self::Error> {
+        Ok(NodeConfig {
+            eth_rpc_url: self.eth_rpc_url,
+            fork_block_number: self.fork_block_number,
+            ..Default::default()
+        })
+    }
+}
+
+impl TryInto<NodeConfig> for ForkConfig {
+    type Error = ForkError;
+    fn try_into(self) -> Result<NodeConfig, Self::Error> {
+        let mut conf: NodeConfig = match self.clone() {
+            ForkConfig::Child(cfg) => cfg.try_into(),
+            ForkConfig::Base(cfg) => cfg.try_into(),
+        }?;
+        if !self.prefund_anvil_accounts() {
+            conf.genesis_accounts = Vec::new();
+        }
+        Ok(conf)
+    }
+}
+
 #[derive(Clone, Serialize)]
 pub struct EthFork {
     pub id: String,
     pub name: String,
     pub config: ForkConfig,
     pub base_block_number: u64,
-    pub readonly: bool,
+    pub children: HashSet<String>,
 
     #[serde(skip)]
     pub api: Arc<RwLock<EthApi>>,
@@ -44,49 +196,63 @@ pub struct EthFork {
     pub snapshots: Arc<RwLock<Vec<Snapshot>>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(default)]
-pub struct ForkConfig {
-    /// url of the rpc server that should be used for any rpc calls
-    pub eth_rpc_url: String,
-    /// pins the block number for the state fork
-    pub fork_block_number: u64,
-    /// whether or not to prefund anvil dev accounts
-    pub prefund_anvil_accounts: bool,
-}
-
 impl EthFork {
-    pub async fn new(cfg: Option<ForkConfig>, name: String) -> Self {
-        let config = cfg.unwrap_or_default();
-        let api = create_eth_api(config.clone()).await;
+    pub async fn new(config: ForkConfig, name: &String) -> Result<Self, ForkError> {
+        let api = create_eth_api(config.clone().try_into()?).await?;
         let id = Uuid::new_v4().to_string();
-        let base_block_number = api.block_number().unwrap().as_u64();
+        let base_block_number = api.backend.best_number().as_u64();
 
         let fork = Self {
             id,
-            name,
+            name: name.clone(),
             config,
-            readonly: false,
+            children: Default::default(),
             base_block_number,
             api: Arc::new(RwLock::new(api)),
             snapshots: Arc::new(RwLock::new(Vec::new())),
         };
 
-        fork.snapshot().await;
-        fork
+        match fork.snapshot().await {
+            Ok(_) => Ok(fork),
+            Err(err) => Err(err),
+        }
     }
 
-    pub async fn take_snapshot(&self) -> Snapshot {
+    pub async fn take_snapshot(&self) -> Result<Snapshot, ForkError> {
         let api = self.api.read().await;
-        let snapshot_id = api.evm_snapshot().await.unwrap();
-        let block_number = api.block_number().unwrap().as_u64();
+        let snapshot_id = api.evm_snapshot().await;
+        match snapshot_id {
+            Ok(snapshot_id) => {
+                let block_number = api.backend.best_number().as_u64();
 
-        let snapshot = Snapshot {
-            id: snapshot_id,
-            block_number,
-        };
+                let snapshot = Snapshot {
+                    id: snapshot_id,
+                    block_number,
+                };
 
-        snapshot
+                Ok(snapshot)
+            }
+            Err(_) => Err(ForkError::SnapshotFailed()),
+        }
+    }
+
+    pub async fn add_child(
+        &mut self,
+        fork_id: String,
+        block_number: Option<u64>,
+    ) -> Result<(), ForkError> {
+        let res = self.set_base_block_number(block_number).await;
+        match res {
+            Ok(_) => {
+                self.children.insert(fork_id);
+                Ok(())
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn remove_child(&mut self, fork_id: String) -> bool {
+        self.children.remove(&fork_id)
     }
 
     pub async fn save_snapshot(&self, snapshot: Snapshot) {
@@ -94,13 +260,37 @@ impl EthFork {
         snapshots.push(snapshot);
     }
 
-    pub async fn snapshot(&self) -> Snapshot {
-        let snapshot = self.take_snapshot().await;
-        self.save_snapshot(snapshot.clone()).await;
-        snapshot
+    pub async fn snapshot(&self) -> Result<Snapshot, ForkError> {
+        match self.take_snapshot().await {
+            Ok(snapshot) => {
+                self.save_snapshot(snapshot.clone()).await;
+                Ok(snapshot)
+            }
+            Err(e) => Err(e),
+        }
     }
 
     pub async fn step_back(&self, times: usize) -> Result<bool, BlockchainError> {
+        let api = self.api.write().await;
+        let best_number = api.backend.best_number().as_u64();
+        if (times as u64) > best_number {
+            return Err(BlockchainError::ForkProvider(ProviderError::CustomError(
+                format!(
+                    "number of revert steps greater than block height. requested : {}, current height: {}",
+                    times, best_number,
+                ),
+            )));
+        }
+        let requested_block = best_number - (times as u64);
+        if self.base_block_number > requested_block {
+            return Err(BlockchainError::ForkProvider(ProviderError::CustomError(
+                format!(
+                    "unable to revert to block {} : another fork depends on this fork at block {}",
+                    requested_block, self.base_block_number,
+                ),
+            )));
+        }
+
         let mut snapshots = self.snapshots.write().await;
 
         let i = if snapshots.len() > times {
@@ -109,21 +299,22 @@ impl EthFork {
             0
         };
 
-        // TODO: fix unsafe unwrap
-        let snapshot = snapshots.get(i).unwrap();
-
-        let api = self.api.write().await;
-        let result = api.evm_revert(snapshot.id).await;
-
-        // TODO: do we need to prune api.backend.active_snapshots
-        if i == 0 {
-            snapshots.truncate(1);
-        } else {
-            snapshots.truncate(i);
+        let snapshot = snapshots.get(i);
+        match snapshot {
+            Some(snapshot) => {
+                let result = api.evm_revert(snapshot.id).await;
+                // TODO: do we need to prune api.backend.active_snapshots
+                if i == 0 {
+                    snapshots.truncate(1);
+                } else {
+                    snapshots.truncate(i);
+                }
+                result
+            }
+            None => Err(BlockchainError::ForkProvider(ProviderError::CustomError(
+                format!("snapshot not found: {}", i),
+            ))),
         }
-
-        result
-
     }
 
     pub async fn step_back_once(&self) -> Result<bool, BlockchainError> {
@@ -134,19 +325,25 @@ impl EthFork {
         let times = self.snapshots.read().await.len();
         self.step_back(times).await
     }
+
+    // sets the minimum block number a user can revert to
+    async fn set_base_block_number(&mut self, num: Option<u64>) -> Result<(), ForkError> {
+        let api_read = self.api.read().await;
+        let best_num = api_read.backend.best_number().as_u64();
+        let num = num.unwrap_or(best_num);
+        if num > best_num {
+            return Err(ForkError::BaseTooHigh(num, best_num));
+        }
+
+        if num < self.base_block_number {
+            return Err(ForkError::BaseTooLow(num, self.base_block_number));
+        }
+        self.base_block_number = num;
+        Ok(())
+    }
 }
 
-pub async fn create_eth_api(cfg: ForkConfig) -> EthApi {
-    let mut config = NodeConfig {
-        eth_rpc_url: Some(cfg.eth_rpc_url),
-        fork_block_number: Some(cfg.fork_block_number),
-        ..Default::default()
-    };
-
-    if !cfg.prefund_anvil_accounts {
-        config.genesis_accounts = Vec::new();
-    }
-
+pub async fn create_eth_api(mut config: NodeConfig) -> Result<EthApi, ForkError> {
     let logger: LoggingManager = Default::default();
 
     let backend = Arc::new(config.setup().await);
@@ -218,5 +415,13 @@ pub async fn create_eth_api(cfg: ForkConfig) -> EthApi {
         filters,
     ));
 
-    api
+    Ok(api)
+}
+
+fn validate_fork_id(fork_id: String) -> Result<(), uuid::Error> {
+    let id_underlying: &str = &fork_id.clone();
+    match Uuid::parse_str(id_underlying) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
 }

@@ -1,27 +1,30 @@
-# Neptune Server
+<image src="./media/trident1.png"/>
+
+# **_Neptune Server_**
 
 ## quickstart
+
 - **install:** `git submodule init` and `git submodule update`
- - **build:** `cargo build`
- - **run:** `./target/debug/neptune`
+- **build:** `cargo build`
+- **run:** `./target/debug/neptune`
 
-## routes
+## **Routes**
 
-### GET
+### _`/forks`_
 
-```
-# GET list of forks
+#### **_GET_**
 
-GET /forks
+Get a list of all forks.
 
-Reponse:
+#### **Reponse**:
 
+```jsonc
 {
-  forks: {
-    <fork_id>: {
-      id: <fork_id>,
-      name: <fork_name>,
-      config: {
+  "forks": {
+    "<fork_id>": {
+      "id": "<fork_id>",
+      "name": "<fork_name>",
+      "config": {
         ...
       }
     }
@@ -29,57 +32,87 @@ Reponse:
 }
 ```
 
-### POST
+#### **_POST_**
 
+Create a new fork
+
+#### **Request Body**:
+
+```jsonc
+{
+  "name": "the-fork-name",
+  "config": {} // see ForkConfig object
+}
 ```
 
-# Create a new fork
+#### **Response**:
 
-POST /fork
-
-Body:
-
+```jsonc
 {
-   name: "My New Fork",
-   config: {
-      eth_rpc_url: "https://mainnedt.infura.io/v3/sadfsadfasdf",
-   }
+  "fork_id": "<string>"
 }
-
-
-Response:
-
-{
-   fork_id: <new_fork_id>,
-}
-
 ```
 
-```
-# Make an RPC request to fork with id <fork_id>
+## **_ForkConfig_ object**
 
+Neptune allows creating blank forks and forks of mainnet - _base forks_, and forks of forks - _child forks_. These are configured using the following variants of the **_ForkConfig_** object:
 
-POST /fork/{fork_id}`
+### **_BaseConfig_**:
 
-Body:
-
-# An eth or neptune rpc request
-
+```jsonc
 {
-  id: 1,
-  jsonrpc: "2.0",
-  method: "eth_blockNumber",
-  params: []
+  "eth_rpc_url": "string, optional", // optionally specify a mainnet RPC provider
+  "fork_block_number": number, optional, // defaults to the current block number
+  "prefund_anvil_accounts": bool // generate a list of pre-funded accounts using anvil's default seed phrase
 }
-
-Response:
-
-# An eth rpc response
-
-{
-   id: 1,
-   result: "0xasedfasdf"
-}
-
-
 ```
+
+### **_ChildConfig_**:
+
+```jsonc
+{
+  "parent_fork_id": "string" // the ID of the parent fork (must be a valid uuid string)
+  "fork_block_number": number?, // defaults to the current block number
+  "prefund_anvil_accounts": bool // generate a list of pre-funded accounts using anvil's default seed phrase
+}
+```
+
+### _`/forks/{fork_id}`_
+
+#### **_POST_**
+
+Send an eth or anvil rpc request
+
+#### **Request:**
+
+```jsonc
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "method": "eth_blockNumber",
+  "params": [...]
+}
+```
+
+#### **Response:**
+
+```jsonc
+{
+  "id": 1,
+  "result": "0xasedfasdf"
+}
+```
+
+#### **_DELETE_**
+
+Delete a fork - fails if a fork is referenced by another fork.
+
+#### **_GET_**
+
+Returns a serialized version of the fork if it exists.
+
+### _`/reset`_
+
+#### **_DELETE_**
+
+clears all forks from memory
