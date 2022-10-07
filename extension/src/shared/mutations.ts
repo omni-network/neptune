@@ -68,7 +68,7 @@ export const forkMainnetLatest = async (
 type BacktrackOptions =
   | {
       reset: true
-      backOcne?: undefined
+      backOnce?: undefined
     }
   | {
       reset?: undefined
@@ -88,11 +88,11 @@ export const backtrack = async (opts: BacktrackOptions) => {
     jsonrpc: '2.0',
     method,
     params: [],
-    id: Math.floor(Math.random() * 1000000),
+    id: 1,
   })
 
   if (r.error) throw new Error(r.error.message ?? r.error)
-  if (!r.result) throw new Error('No result')
+  if (!r.result) throw new Error('Backtrack failed')
 
   return r.result
 }
