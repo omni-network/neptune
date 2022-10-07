@@ -1,4 +1,3 @@
-import browser from 'webextension-polyfill'
 import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine'
 
 export type HexString = `0x${string}`
