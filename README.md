@@ -58,7 +58,7 @@ Current features include:
 - Impersonate any other address, and run transactions on forks as these wallets
 - Rewind, replay, and reset the state of your forks
 - Use most dapps with Neptune to simulate actions on their frontends - without
-  changing anything about their frontend
+  modifying their frontend
 - Create a new fork from a already existing fork to create multiple local
   environments with different configurations
 - Seamless interop with metamask - simply connect and disconnect when you want
