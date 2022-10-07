@@ -4,7 +4,6 @@ import { JsonRpcMiddleware } from 'json-rpc-engine'
 import { shimEthereum } from './shim'
 import msg from 'inpage/messages'
 
-
 declare global {
   interface Window {
     neptune?: InjectedNeptuneProvider
@@ -50,14 +49,21 @@ export abstract class AbstractInjectedNeptuneProvider extends BaseProvider {
       window.ethereum = shimEthereum(ethereum, this)
       this.shimmed = ethereum
     } else if (injectIfNotShimmed) {
-      window.ethereum = (this as unknown) as MetaMaskInpageProvider
+      window.ethereum = this as unknown as MetaMaskInpageProvider
       this.shimmed = null
     }
+
+    this.emit('connect', { chainId: this.chainId })
+    this.emit('accountsChanged', this._state.accounts)
   }
 
   protected async _inititalize() {
     const connected = await msg.connection.get()
+
     this._initializeState(connected ? await this.getProviderState() : undefined)
+
+    this.emit('connect', { chainId: this.chainId })
+    this.emit('accountsChanged', this._state.accounts)
   }
 
   protected async _handleConnectionChange(connected: boolean) {
@@ -68,8 +74,8 @@ export abstract class AbstractInjectedNeptuneProvider extends BaseProvider {
       this._shimOrInjectEthereum()
 
       if (this.shimmed) {
-        this.shimmed.emit('connect', this.chainId)
-        this.shimmed.emit('accountsChanged', this._state.accounts)
+        this.shimmed.emit('connect', { chainId })
+        this.shimmed.emit('accountsChanged', accounts)
       }
 
       this._handleConnect(chainId)
@@ -87,7 +93,7 @@ export abstract class AbstractInjectedNeptuneProvider extends BaseProvider {
           shimmed.request({ method: 'eth_accounts' }) as Promise<string[]>,
         ])
           .then(([chainId, accounts]) => {
-            shimmed.emit('connect', chainId)
+            shimmed.emit('connect', { chainId })
             shimmed.emit('accountsChanged', accounts)
           })
           .catch(error => {
