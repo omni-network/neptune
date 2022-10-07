@@ -20,17 +20,6 @@ The current version is not considered stable.
 - [Acknowledgements](#acknowledgements)
 
 
-Current features include:
-- Fork directly from mainnet to gain access to a local fork for development
-- Run transactions against your local forks via the Neptune browser extension
-- Impersonate any other address, and run transactions on forks as these wallets
-- Rewind, fast forward, reset the state of your forks
-- Use most dapps with Neptune to simulate actions on their frontends - without
-  changing anything about their frontend
-- Create a new fork from a already existing fork to create multiple local
-  environments with different configurations
-- Seamless interop with metamask - simply connect and disconnect when you want
-  to use one or the other
 
 ## Install 
 
@@ -61,10 +50,24 @@ cargo run
 
 ## Usage
 
-You should now be able to create forks and run wild. Try out various dapps, try
-acting as vitalik, run multiple forks with different configurations, run txns
-forward and backwards, and more! Let us know how it's working for you, and if
-there are any features you'd like to see in a future version.
+Once installed, you can interact with Neptune via the browser extension.
+
+Current features include:
+- Fork directly from mainnet to gain access to a local fork for development
+- Run transactions against your local forks via the Neptune browser extension
+- Impersonate any other address, and run transactions on forks as these wallets
+- Rewind, fast forward, reset the state of your forks
+- Use most dapps with Neptune to simulate actions on their frontends - without
+  changing anything about their frontend
+- Create a new fork from a already existing fork to create multiple local
+  environments with different configurations
+- Seamless interop with metamask - simply connect and disconnect when you want
+  to use one or the other
+
+Try out various dapps, try acting as vitalik, run multiple forks with different
+configurations, run txns forward and backwards, and more! Let us know how it's
+working for you, and if there are any features you'd like to see in a future
+version.
 
 ### Notes
 
