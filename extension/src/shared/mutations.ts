@@ -17,13 +17,19 @@ export const createFork = async ({
   const baseUrl = _baseUrl ?? (await msg.baseUrl.get())
   const providerRpcUrl = await msg.providerRpcUrl.get()
 
+  const config = from
+    ? {
+        prefund_anvil_accounts: false,
+        parent_fork_id: from.id,
+      }
+    : {
+        prefund_anvil_accounts: true,
+        eth_rpc_url: providerRpcUrl,
+      }
+
   const body = JSON.stringify({
     name,
-    config: {
-      eth_rpc_url: providerRpcUrl,
-      parent_fork_id: from?.id,
-      prefund_anvil_accounts: !from,
-    },
+    config,
   })
 
   const forkId = await fetch(url.forks(baseUrl), {
