@@ -26,6 +26,27 @@ features include:
 Currently, the extension and backend must both be built locally. We’re working
 to create our first stable release soon, but it’s still experimental. 
 
+To build the browser extension:
+```
+cd extension
+yarn install
+yarn build
+```
+
+Then go to your browser's extension settings, turn on developer mode, and select
+"Load unpacked". Find the `dist` subdirectory within neptune, and select it. Now
+you should be able to see Neptune as a browser extension.
+
+Then run the backend:
+```
+cd server
+git submodule init
+git submodule update
+cargo run
+```
+
+You should now be able to fork mainnet. You can input your mainnet RPC URL as an
+environment variable, or in the browser extension directly.
 
 ### Notes
 
