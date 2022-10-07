@@ -15,7 +15,13 @@ const middlewareFor: MiddlewareFactory =
   (handler, ...methods) =>
   async (req, res, next, end) => {
     if (methods.includes(req.method)) {
-      res.result = await handler(req)
+      try {
+        res.result = await handler(req)
+      } catch (err) {
+        console.log(err)
+        res.error = err instanceof Error ? err : new Error(String(err))
+      }
+
       return end()
     }
     return next()
@@ -28,6 +34,9 @@ const getProviderState = async () => {
 }
 
 const handleSetEthereumChain = async (req: JsonRpcRequest<any>) => {
+  throw new Error('Switching chain is not supported')
+
+  // not supported yet, but the piping is there, so we'll leave this
   if (Array.isArray(req.params)) {
     const { chainId } = req.params[0]
     await msg.chain.set(chainId)

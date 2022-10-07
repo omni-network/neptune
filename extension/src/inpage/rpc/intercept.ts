@@ -3,12 +3,19 @@ import msg from 'inpage/messages'
 const isPost = (init?: RequestInit): init is RequestInit =>
   Boolean(init && init.method === 'POST' && init.body)
 
-const isRpcRequest = (body?: any) =>
-  body &&
-  body.jsonrpc === '2.0' &&
-  typeof body.id === 'number' &&
-  typeof body.method === 'string' &&
-  Array.isArray(body.params)
+const isRpcRequest = (body?: any) => {
+  // handle batch requests
+  const reqs = Array.isArray(body) ? body : [body]
+
+  return reqs.every(
+    (req: any) =>
+      req &&
+      req.jsonrpc === '2.0' &&
+      req.id &&
+      typeof req.method === 'string' &&
+      Array.isArray(req.params),
+  )
+}
 
 const requestInitToBody = async ({ body }: RequestInit) => {
   let parsed
@@ -36,20 +43,48 @@ const requestInitToBody = async ({ body }: RequestInit) => {
 
 type Fetch = typeof window.fetch
 
+const resourcesToIntercept = new Map<string, boolean>()
+
+const tryGetChainId = async (url: URL | RequestInfo) => {
+  try {
+    const chainId = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 0,
+        method: 'eth_chainId',
+        params: [],
+      }),
+    })
+      .then(res => res.json())
+      .then(res => res.result)
+
+    return chainId as string
+  } catch (e) {
+    return null
+  }
+}
+
 const interceptRpcRequests =
   (fetch: Fetch): Fetch =>
   async (...args) => {
-    const [_, init] = args
+    const [resource, init] = args
 
     if (!isPost(init)) return fetch(...args)
 
     const body = await requestInitToBody(init)
-
     if (!isRpcRequest(body)) return fetch(...args)
 
     const connected = await msg.connection.get()
-
     if (!connected) return fetch(...args)
+
+    // only intercept mainnet requests
+    if (!resourcesToIntercept.has(resource.toString())) {
+      const shouldIntercept = (await tryGetChainId(resource)) === '0x1'
+      resourcesToIntercept.set(resource.toString(), shouldIntercept)
+    }
+
+    if (!resourcesToIntercept.get(resource.toString())) return fetch(...args)
 
     return new Response(JSON.stringify(await msg.rpc.sendRequest(body)))
   }
