@@ -21,7 +21,7 @@ rules:
   '@typescript-eslint/ban-ts-comment': off
   '@typescript-eslint/no-unused-vars':
     - error
-    - varsIgnorePattern: "_"
+    - varsIgnorePattern: '_'
       ignoreRestSiblings: true
       args: after-used
 overrides:
