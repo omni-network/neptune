@@ -56,7 +56,7 @@ Current features include:
 - Fork directly from mainnet to gain access to a local fork for development
 - Run transactions against your local forks via the Neptune browser extension
 - Impersonate any other address, and run transactions on forks as these wallets
-- Rewind, fast forward, reset the state of your forks
+- Rewind, replay, and reset the state of your forks
 - Use most dapps with Neptune to simulate actions on their frontends - without
   changing anything about their frontend
 - Create a new fork from a already existing fork to create multiple local
