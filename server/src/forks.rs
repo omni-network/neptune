@@ -135,6 +135,8 @@ impl TryInto<NodeConfig> for ChildConfig {
         let fork_id = validate_fork_id(self.parent_fork_id.clone());
         match fork_id {
             Ok(_) => Ok(NodeConfig {
+                eth_rpc_url: Some(self.eth_rpc_url),
+                fork_block_number: self.fork_block_number,
                 ..Default::default()
             }),
             Err(_) => Err(Self::Error::InvalidForkId(self.parent_fork_id)),
@@ -147,7 +149,8 @@ impl ChildConfig {
         let valid = validate_fork_id(self.parent_fork_id.clone());
         match valid {
             Ok(_) => {
-                self.eth_rpc_url = format!("{}:{}/forks/{}", host, port, self.parent_fork_id);
+                self.eth_rpc_url =
+                    format!("http://{}:{}/forks/{}", host, port, self.parent_fork_id);
                 Ok(())
             }
             Err(_) => Err(ForkError::InvalidForkId(self.parent_fork_id.clone())),
@@ -345,9 +348,7 @@ impl EthFork {
 
 pub async fn create_eth_api(mut config: NodeConfig) -> Result<EthApi, ForkError> {
     let logger: LoggingManager = Default::default();
-
     let backend = Arc::new(config.setup().await);
-
     let NodeConfig {
         signer_accounts,
         block_time,

@@ -26,8 +26,7 @@ impl NeptuneState {
         cfg: Option<ForkConfig>,
         name: String,
     ) -> Result<String, ForkError> {
-        let conf = cfg.unwrap_or_default();
-        let fork = match conf {
+        let fork = match cfg.unwrap_or_default() {
             ForkConfig::Child(c) => self.create_child_fork(c, &name).await,
             ForkConfig::Base(b) => self.create_base_fork(b, &name).await,
         }?;
@@ -52,14 +51,16 @@ impl NeptuneState {
                 return Err(ForkError::ForkNotFound(config.parent_fork_id.clone()));
             }
         }
-        let mut forks = self.forks.write().await;
-        if let Some(parent_fork) = forks.get_mut(&config.parent_fork_id) {
-            let _ = parent_fork
-                .add_child(
-                    config.parent_fork_id.clone(),
-                    config.fork_block_number.clone(),
-                )
-                .await?;
+        {
+            let mut forks = self.forks.write().await;
+            if let Some(parent_fork) = forks.get_mut(&config.parent_fork_id) {
+                let _ = parent_fork
+                    .add_child(
+                        config.parent_fork_id.clone(),
+                        config.fork_block_number.clone(),
+                    )
+                    .await?;
+            }
         }
         let conf = ForkConfig::Child(config.clone());
         EthFork::new(conf, name).await
