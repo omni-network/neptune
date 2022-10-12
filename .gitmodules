@@ -1,3 +1,0 @@
-[submodule "server/foundry"]
-	path = server/foundry
-	url = https://github.com/recursive-research/foundry

@@ -4,11 +4,11 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-anvil = {  path = "foundry/anvil" }
-anvil-core = { path = "foundry/anvil/core" }
-anvil-rpc = {  path = "foundry/anvil/rpc" }
-anvil-server = { path = "foundry/anvil/server" }
-foundry-evm = { path = "foundry/evm" }
+anvil = { git = "https://github.com/recursive-research/foundry" }
+anvil-core = { git = "https://github.com/recursive-research/foundry" }
+anvil-rpc = { git = "https://github.com/recursive-research/foundry" }
+anvil-server = { git = "https://github.com/recursive-research/foundry" }
+foundry-evm = { git = "https://github.com/recursive-research/foundry" }
 axum = "0.5.16"
 axum-macros = "0.2.3"
 clap = "3.2.22"
