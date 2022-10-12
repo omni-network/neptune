@@ -1,5 +1,3 @@
-<image src="./media/trident1.png"/>
-
 # **_Neptune Server_**
 
 ## quickstart
