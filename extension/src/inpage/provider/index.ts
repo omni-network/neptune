@@ -30,7 +30,9 @@ export abstract class AbstractInjectedNeptuneProvider extends BaseProvider {
 
   constructor({ rpcMiddleware }: InjectedNeptuneProviderOptions) {
     super({ rpcMiddleware })
+  }
 
+  protected async _inititalize() {
     // let's not eagerly inject if window.ethereum has not yet been set. only
     // do when a user explicitly connects
     this._shimOrInjectEthereum({ injectIfNotShimmed: false })
@@ -38,8 +40,33 @@ export abstract class AbstractInjectedNeptuneProvider extends BaseProvider {
     msg.chain.onChanged(chainId => this._handleChainChanged({ chainId }))
     msg.accounts.onChanged(this._handleAccountsChanged.bind(this))
     msg.connection.onChanged(this._handleConnectionChange.bind(this))
+
+    const connected = await msg.connection.get()
+    this._initializeState(connected ? await this.getProviderState() : undefined)
+
+    if (!connected) return
+
+    // when initializing on page load, the Neptune provider may be initialized
+    // before MetaMask provider. when MetaMask does init, it will emit
+    // 'connect' and 'accountsChanged' events that "override" those emitted
+    // here. these timeouts help make sure Neptune's events are emitted last
+
+    const emitState = this._emitNeptuneState.bind(this)
+    emitState()
+    setTimeout(emitState, 10)
+    setTimeout(emitState, 50)
   }
 
+  /**
+   * If window.ethereum exists, we assume this means MetaMask is installed and
+   * has successfully injfected its provider. Neptune shims the provider, by
+   * wrapping it in a proxy.
+   *
+   * If window.etherem does not exist, MetaMask may not be installed, or it may
+   * just not have run its injection script yet. We leave it up to the "caller"
+   * to decide whether to injected Neptune at window.ethereum if it does not
+   * yet exist.
+   */
   protected _shimOrInjectEthereum({ injectIfNotShimmed = true } = {}) {
     if (this.shimmed) return
 
@@ -53,15 +80,16 @@ export abstract class AbstractInjectedNeptuneProvider extends BaseProvider {
       this.shimmed = null
     }
 
-    this.emit('connect', { chainId: this.chainId })
-    this.emit('accountsChanged', this._state.accounts)
+    this._emitNeptuneState()
   }
 
-  protected async _inititalize() {
-    const connected = await msg.connection.get()
-
-    this._initializeState(connected ? await this.getProviderState() : undefined)
-
+  /**
+   * Let those "listeneing" (like ethers, web3-react, wagmi, or other frontend
+   * libraries consuming MetaMask's provider), that Neptune state is the true
+   * and good state. To them, it just looks like MetaMask accounts & chainId
+   * have changed.
+   */
+  protected _emitNeptuneState() {
     this.emit('connect', { chainId: this.chainId })
     this.emit('accountsChanged', this._state.accounts)
   }
@@ -119,6 +147,12 @@ export abstract class AbstractInjectedNeptuneProvider extends BaseProvider {
     }
   }
 
+  /**
+   * Some older consuming frontend libraries expect the provider to expost a
+   * "send" method (though this is decprecated) -
+   *
+   * https://docs.metamask.io/guide/ethereum-provider.html#ethereum-send-deprecated
+   */
   async send(method: string, params?: unknown[]): Promise<unknown> {
     return this.request({ method, params })
   }

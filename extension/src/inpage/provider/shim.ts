@@ -1,11 +1,15 @@
 import { MetaMaskInpageProvider } from '@metamask/providers'
 import { InjectedNeptuneProvider } from 'inpage/provider'
 
+/**
+ * Wrap a MetaMask provider in a proxy that forwards all requests to the
+ * Neptune provider, if its connected.
+ */
 export function shimEthereum(
   ethereum: MetaMaskInpageProvider,
   provider: InjectedNeptuneProvider,
 ) {
-  // some event listeners may have been registered on window.ethereum before
+  // some event listeners may have been registered on ethereum before
   // our proxy was introduced and neptune was connected. it's important we
   // forward neptune provider events onto these early listeners
   const sync = (event: string) => {
