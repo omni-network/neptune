@@ -1,9 +1,9 @@
 import styled from 'styled-components'
-import { CircularProgress } from '@mui/material'
 import { Outlet } from 'react-router-dom'
 import { useActiveTab } from 'ui/utils/tabs'
 import { useIsServerRunning, useSyncController } from 'ui/queries'
 import Tabs from 'ui/components/Tabs'
+import DelayedSpinner from 'ui/components/DelayedSpinner'
 import NoServer from 'ui/pages/NoServer'
 import ConnectPage from 'ui/pages/Connect'
 import { Background, Centered } from 'ui/components/background'
@@ -23,17 +23,17 @@ const Layout = () => {
   const server = useIsServerRunning()
   const tab = useActiveTab()
 
+  if (sync.isLoading || server.isLoading)
+    return (
+      <Centered>
+        <DelayedSpinner />
+      </Centered>
+    )
+
   if (!server.isRunning)
     return (
       <Centered>
         <NoServer />
-      </Centered>
-    )
-
-  if (sync.isLoading || server.isLoading)
-    return (
-      <Centered>
-        <CircularProgress />
       </Centered>
     )
 
