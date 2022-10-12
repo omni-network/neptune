@@ -8,15 +8,8 @@ clean: ## clean build artifacts
 	rm -r ${BUILD_DIR} 2> /dev/null || :
 	rm -r ${ERR_DIR} 2> /dev/null || :
 
-.PHONY: build-all
-build-all: ## build for all targets
-	$(MAKE) clean
-	for target in aarch64-apple-darwin x86_64-apple-darwin x86_64-unknown-linux-gnu; do\
-		$(MAKE) build BUILD_TARGET=$$target; \
-	done
-
 .PHONY: build
-build: ## build release file
+build: ## build release file - aarch64-apple-darwin, x86_64-apple-darwin, or x86_64-unknown-linux-gnu
 	(ls ${BUILD_DIR} 2> /dev/null || mkdir ${BUILD_DIR})
 	(ls ${ERR_DIR} 2> /dev/null || mkdir ${ERR_DIR})
 	rustup target add ${BUILD_TARGET}
