@@ -70,7 +70,7 @@ async fn handle_delete_fork(state: &NeptuneState, fork_id: &String) -> NeptuneRe
                         let parent = forks.get_mut(&cfg.parent_fork_id);
                         match parent {
                             Some(p) => {
-                                let _ = p.remove_child(fork_id.clone());
+                                let _ = p.remove_child(cfg.parent_fork_id.clone()).await;
                             }
                             None => {}
                         }
