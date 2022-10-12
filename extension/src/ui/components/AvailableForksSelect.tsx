@@ -22,7 +22,6 @@ const AvailableForksSelect = ({
 
   return (
     <FormControl
-      key={JSON.stringify(availableForks)}
       sx={{ width: '100%', fontSize: '0.75em' }}
       disabled={availableForks?.length === 0}
     >
