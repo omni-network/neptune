@@ -26,28 +26,20 @@ const paths = pages.map(page => page.path)
 
 const ExtensionTabs = () => {
   const location = useLocation()
-
   const value = paths.includes(location.pathname) ? location.pathname : '/'
 
   return (
-    <Tabs
-      variant="fullWidth"
-      centered
-      value={value}
-      sx={{ marginBottom: '1.5rem', width: '100%' }}
-    >
-      {pages.map(page => {
-        return (
-          <Tab
-            sx={{ minWidth: 'auto', width: 'auto', fontSize: '1.5rem' }}
-            key={page.path}
-            label={page.label}
-            value={page.path}
-            component={Link}
-            to={page.path}
-          />
-        )
-      })}
+    <Tabs variant="fullWidth" centered value={value} sx={{ width: '100%' }}>
+      {pages.map(page => (
+        <Tab
+          sx={{ minWidth: 'auto', width: 'auto', fontSize: '1.5rem' }}
+          key={page.path}
+          label={page.label}
+          value={page.path}
+          component={Link}
+          to={page.path}
+        />
+      ))}
     </Tabs>
   )
 }

@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Input, Alert } from '@mui/material'
+import { Input, FormControl } from '@mui/material'
 import { Fork } from 'shared/types'
 import { LoadingButton as Button } from '@mui/lab'
 import { formatLongString } from 'ui/utils/format'
 import { useCreateFork } from 'ui/mutations'
-import { parseErrorMessage } from 'shared/utils/error'
+import { ErrorMessage } from 'ui/components/messages'
 import AvailableForksSelect from './AvailableForksSelect'
 
 const AddFork = () => {
@@ -22,33 +22,30 @@ const AddFork = () => {
   })
 
   return (
-    <>
-      <h3 style={{ marginTop: '2rem', fontStyle: 'italic' }}>Create Fork</h3>
+    <FormControl>
+      <h3>Create Fork</h3>
       <Input
         value={name}
         onChange={e => setName(e.target.value)}
         placeholder="Fork Name"
-        sx={{
-          marginTop: '1rem',
-          marginBottom: '1.5rem',
-        }}
+        sx={{ margin: '1rem 0' }}
       />
       <AvailableForksSelect
         value={from}
         onSelect={setFrom}
         label="Fork From"
         labelId="fork-from"
+        allowNone
       />
       <Button
         disabled={!name}
         loading={isLoading}
         onClick={() => createFork({ name, from })}
-        sx={{ margin: '1rem 0' }}
       >
         {from ? `Fork from ${formatLongString(from.id)}` : 'Blank Fork'}
       </Button>
-      {!!error && <Alert severity="error">{parseErrorMessage(error)}</Alert>}
-    </>
+      {error ? <ErrorMessage error={error} /> : null}
+    </FormControl>
   )
 }
 

@@ -1,9 +1,8 @@
-import { Alert } from '@mui/lab'
 import { LoadingButton as Button } from '@mui/lab'
 import { useForkMainnetLatest } from 'ui/mutations'
-import { parseErrorMessage } from 'shared/utils/error'
+import { ErrorMessage, SuccessMessage } from 'ui/components/messages'
 
-const ForkMainnet = () => {
+const ForkMainnet = ({ style }: { style?: React.CSSProperties }) => {
   const {
     isLoading,
     mutate: forkMainnetLatest,
@@ -14,14 +13,14 @@ const ForkMainnet = () => {
   return (
     <>
       <Button
-        sx={{ padding: '1rem 3rem', margin: '1rem 0' }}
+        sx={{ marginBottom: '1rem', ...style }}
         loading={isLoading}
         onClick={() => forkMainnetLatest()}
       >
         Fork Mainnet
       </Button>
-      {!!error && <Alert severity="error">{parseErrorMessage(error)}</Alert>}
-      {isSuccess && <Alert severity="success">Success!</Alert>}
+      {error ? <ErrorMessage error={error} /> : null}
+      {isSuccess ? <SuccessMessage /> : null}
     </>
   )
 }
