@@ -205,7 +205,7 @@ impl EthFork {
         let id = Uuid::new_v4().to_string();
         let base_block_number = api.backend.best_number().as_u64();
 
-        let fork = Self {
+        Ok(Self {
             id,
             name: name.clone(),
             config,
@@ -213,12 +213,7 @@ impl EthFork {
             base_block_number,
             api: Arc::new(RwLock::new(api)),
             snapshots: Arc::new(RwLock::new(Vec::new())),
-        };
-
-        match fork.snapshot().await {
-            Ok(_) => Ok(fork),
-            Err(err) => Err(err),
-        }
+        })
     }
 
     pub async fn take_snapshot(&self) -> Result<Snapshot, ForkError> {
