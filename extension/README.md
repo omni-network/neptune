@@ -2,7 +2,7 @@
 
 A browser extension that lets you make dApps talk to your Neptune forks, rather than some other wallet / node provider.
 
-## Installation
+## Install
 
 The neptune extension is currently awaiting approval on Firefox and Chrome stores. You can build it from source and install it locally.
 
