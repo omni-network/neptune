@@ -1,31 +1,25 @@
 import msg from 'background/messages'
 import { getAvailableForks } from 'shared/queries'
 import { useQuery } from 'react-query'
-import { forkMainnetLatest } from 'shared/mutations'
 import { client } from './client'
 
 export const useAccounts = () => useQuery('accounts', msg.accounts.get)
 export const useChainId = () => useQuery('chainId', msg.chain.get)
 export const useActiveFork = () => useQuery('fork', msg.fork.get)
 export const useBaseUrl = () => useQuery('base-url', msg.baseUrl.get)
+export const useSyncController = () =>
+  useQuery('sync-controller', msg.sync.sync)
 
 export const useProviderRpcUrl = () =>
   useQuery('provider-rpc-url', msg.providerRpcUrl.get)
 
 export const useAvailableForks = () =>
-  useQuery('available-forks', async () => {
-    const forks = await getAvailableForks()
+  useQuery('available-forks', () => getAvailableForks())
 
-    if (!forks.length) {
-      const fork = await forkMainnetLatest()
-      return [fork]
-    } else {
-      const fork = await msg.fork.get()
-      if (!fork) msg.fork.set(fork)
-    }
-
-    return forks
-  })
+export const useIsServerRunning = () => {
+  const { isSuccess, isLoading, isError } = useAvailableForks()
+  return { isRunning: !isLoading && !isError && isSuccess, isLoading, isError }
+}
 
 export const useIsConnected = (tabId: number | null) => {
   return useQuery(
@@ -37,11 +31,12 @@ export const useIsConnected = (tabId: number | null) => {
   )
 }
 
-const invalidateQuery = (key: string) => client.invalidateQueries(key)
+const invalidateQueries = (...qks: string[]) =>
+  qks.forEach(qk => client.invalidateQueries(qk))
 
-msg.accounts.onChanged(() => invalidateQuery('accounts'))
-msg.chain.onChanged(() => invalidateQuery('chainId'))
-msg.fork.onChanged(() => invalidateQuery('fork'))
-msg.connection.onChanged(({ tabId }) => invalidateQuery(`${tabId}-connection`))
-msg.baseUrl.onChanged(() => invalidateQuery('available-forks'))
-msg.providerRpcUrl.onChanged(() => invalidateQuery('provider-rpc-url'))
+msg.accounts.onChanged(() => invalidateQueries('accounts'))
+msg.chain.onChanged(() => invalidateQueries('chainId'))
+msg.fork.onChanged(() => invalidateQueries('fork', 'available-forks'))
+msg.baseUrl.onChanged(() => invalidateQueries('available-forks'))
+msg.providerRpcUrl.onChanged(() => invalidateQueries('provider-rpc-url'))
+msg.connection.onChanged(conn => invalidateQueries(`${conn.tabId}-connection`))
