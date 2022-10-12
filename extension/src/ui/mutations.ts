@@ -4,6 +4,7 @@ import { ethers } from 'ethers'
 import msg from 'background/messages'
 import {
   createFork,
+  deleteActiveFork,
   forkMainnetLatest,
   backtrack,
   impersonate,
@@ -88,3 +89,5 @@ export const useImpersonateAll = () =>
     const accounts = await msg.accounts.get()
     await impersonateAll(accounts)
   })
+
+export const useDeleteActiveFork = () => useMutation(deleteActiveFork)

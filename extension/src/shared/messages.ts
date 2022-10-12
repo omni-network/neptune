@@ -102,6 +102,21 @@ type RpcResponse = {
 
 type RpcMessage = RpcRequest | RpcResponse
 
+/**
+ * Sync messages are not related to some datafield, but instead prompt the
+ * background controller to sync itself with the server.
+ */
+
+type SyncRequest = {
+  type: 'sync-request'
+}
+
+type SyncResponse = {
+  type: 'sync-response'
+}
+
+type SyncMessage = SyncRequest | SyncResponse
+
 export type Message =
   | FieldMessage<'accounts', { accounts: Account[] }>
   | FieldMessage<'chain-id', { chainId: ChainId }>
@@ -110,6 +125,7 @@ export type Message =
   | FieldMessage<'base-url', { baseUrl: string }>
   | FieldMessage<'provider-rpc-url', { providerRpcUrl: string | null }>
   | ConnectionMesage
+  | SyncMessage
   | RpcMessage
 
 export type MessageType = Message['type']

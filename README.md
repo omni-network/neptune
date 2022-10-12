@@ -7,7 +7,7 @@ God of the sea, master of the trident (forks)
 Neptune is a browser wallet for developers. It consists of a browser extension
 and a local backend, with which you can manage state across multiple dev
 environments, impersonate other addresses, test frontend features, and do
-anything that you’d do with mainnet but in a simulated environment. 
+anything that you’d do with mainnet but in a simulated environment.
 
 The current version is not considered stable.
 
@@ -21,24 +21,28 @@ The current version is not considered stable.
 
 
 
-## Install 
+## Install
 
 Currently, the extension and backend must both be built from source. We’re working
 to create a first stable release soon. Start by cloning this repo.
 
-You can input your RPC URL as an environment variable now (`PROVIDER_RPC_URL`),
+Build the extension. You can input your RPC URL as an environment variable now (`PROVIDER_RPC_URL`),
 or via the browser extension later.
 
-To build the browser extension:
 ```
 cd extension
-yarn install
+
+PROVIDER_RPC_URL=<your-rpc-url> pnpm build
+# or
 yarn build
+# or
+npm run build
 ```
 
-Then go to your browser's extension settings, turn on developer mode, and select
-"Load unpacked". Find the `dist` subdirectory within neptune, and select it. Now
-you should be able to see Neptune as a browser extension.
+Then,
+
+- [Install on Chrome](./extension/docs/install-on-chrome.md)
+- [Install on Firefox](./extension/docs/install-on-firefox.md)
 
 Then run the backend:
 ```

@@ -8,4 +8,8 @@ export const provider = new InjectedNeptuneProvider({ rpcMiddleware })
 
 initRpcIntercept()
 
-msg.forkRpcUrl.onChanged(() => window.location.reload())
+msg.forkRpcUrl.onChanged(async () => {
+  if (await msg.connection.get()) window.location.reload()
+})
+
+msg.sync.sync()
