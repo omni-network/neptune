@@ -13,6 +13,6 @@
 
 2. Go to `chrome://extensions`
 3. Turn on developer mode (top right)
-4. Click "Load uppacked"
+4. Click "Load unpacked"
 5. Select the build directory from the build step (`<neptune_root>/extension/dist/`)
 6. Have fun forking!
