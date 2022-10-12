@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 import SelectFork from '../components/SelectFork'
 import AddFork from '../components/AddFork'
-import ForkMainnet from '../components/ForkMainnet'
 import DeleteActiveFork from 'ui/components/DeleteActiveFork'
 
 const Container = styled.div`
@@ -16,7 +15,6 @@ const Forks = () => {
     <Container>
       <SelectFork />
       <AddFork />
-      <ForkMainnet style={{ width: '100%' }} />
       <DeleteActiveFork style={{ width: '100%' }} />
     </Container>
   )

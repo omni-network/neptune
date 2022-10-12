@@ -42,7 +42,7 @@ const AddFork = () => {
         loading={isLoading}
         onClick={() => createFork({ name, from })}
       >
-        {from ? `Fork from ${formatLongString(from.id)}` : 'Blank Fork'}
+        {from ? `Fork from ${formatLongString(from.id)}` : 'Fork Mainnet'}
       </Button>
       {error ? <ErrorMessage error={error} /> : null}
     </FormControl>
