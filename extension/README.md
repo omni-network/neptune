@@ -4,10 +4,23 @@ A browser extension that lets you make dApps talk to your Neptune forks, rather 
 
 ## Install
 
-The neptune extension is currently awaiting approval on Firefox and Chrome stores. You can build it from source and install it locally.
+Build the extension. You can input your RPC URL as an environment variable now (`PROVIDER_RPC_URL`),
+or via the browser extension later.
 
-- [Install on Chrome locally](./docs/install-on-chrome.md)
-- [Install on Firefox locally](./docs/install-on-chrome.md)
+```
+cd extension
+
+PROVIDER_RPC_URL=<your-rpc-url> pnpm build
+# or
+yarn build
+# or
+npm run build
+```
+
+Then,
+
+- [Install on Chrome](./extension/docs/install-on-chrome.md)
+- [Install on Firefox](./extension/docs/install-on-firefox.md)
 
 ## License
 

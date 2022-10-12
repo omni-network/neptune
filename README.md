@@ -26,10 +26,23 @@ The current version is not considered stable.
 Currently, the extension and backend must both be built from source. We’re working
 to create a first stable release soon. Start by cloning this repo.
 
-You can input your RPC URL as an environment variable now (`PROVIDER_RPC_URL`),
+Build the extension. You can input your RPC URL as an environment variable now (`PROVIDER_RPC_URL`),
 or via the browser extension later.
 
-Follow the installation instructions in the [extension README](./extension/README.md).
+```
+cd extension
+
+PROVIDER_RPC_URL=<your-rpc-url> pnpm build
+# or
+yarn build
+# or
+npm run build
+```
+
+Then,
+
+- [Install on Chrome](./extension/docs/install-on-chrome.md)
+- [Install on Firefox](./extension/docs/install-on-firefox.md)
 
 Then run the backend:
 ```

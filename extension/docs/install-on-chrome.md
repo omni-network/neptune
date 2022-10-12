@@ -5,13 +5,9 @@
 
   ```
   pnpm build
-
   # or
-
   yarn build
-
   # or
-
   npm run build
   ```
 
