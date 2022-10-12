@@ -7,6 +7,7 @@ import Accounts from './pages/Accounts'
 import Forks from './pages/Forks'
 import Home from './pages/Home'
 import Settings from './pages/Settings'
+import Oops from './pages/Oops'
 import Layout from './pages/Layout'
 import { FixedGlobalStyle, theme } from './theme'
 
@@ -14,7 +15,7 @@ export const App = () => (
   <QueryClientProvider client={client}>
     <MuiThemeProvider theme={theme}>
       <FixedGlobalStyle />
-      <ErrorBoundary fallback={<div>Oops... something went wrong</div>}>
+      <ErrorBoundary fallback={<Oops />}>
         <Routes>
           <Route element={<Layout />}>
             <Route path="/accounts" element={<Accounts />} />
