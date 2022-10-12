@@ -26,18 +26,3 @@ export const getAvailableForks = async (
 
   return forks
 }
-
-export const getFork = async (
-  fork: Fork,
-  opts: {
-    baseUrl?: URL | string
-    onError?: () => void
-  } = {},
-): Promise<Fork | null> => {
-  const base = opts.baseUrl ?? (await msg.baseUrl.get())
-  const res = await fetch(url.fork(base, fork)).catch(opts.onError)
-
-  if (res && res.status === 200) return res.json()
-  if (opts.onError) opts.onError()
-  return null
-}
