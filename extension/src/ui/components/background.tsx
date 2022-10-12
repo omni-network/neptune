@@ -13,4 +13,5 @@ export const Background = styled.div`
 export const Centered = styled(Background)`
   justify-content: center;
   align-items: center;
+  padding: 1rem;
 `
