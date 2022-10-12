@@ -40,8 +40,6 @@ export class NeptuneController {
     msg.rpc.onRequest(this.sendRpcRequest.bind(this))
 
     // side effects
-    msg.forkRpcUrl.onChanged(this._impersonateAllAccounts.bind(this))
-    msg.baseUrl.onChanged(this.sync.bind(this))
     msg.sync.onSync(this.sync.bind(this))
   }
 
@@ -156,6 +154,7 @@ export class NeptuneController {
     this._fork = fork
     msg.fork.emitChanged(fork)
     msg.forkRpcUrl.emitChanged(this.forkRpcUrl)
+    this._impersonateAllAccounts()
   }
 
   get forkRpcUrl() {
@@ -175,6 +174,7 @@ export class NeptuneController {
     this._baseUrl = new URL(url)
     msg.baseUrl.emitChanged(url)
     msg.forkRpcUrl.emitChanged(this.forkRpcUrl)
+    this.sync()
   }
 
   /**
