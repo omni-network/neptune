@@ -18,6 +18,7 @@ build-all: ## build for all targets
 .PHONY: build
 build: ## build release file
 	(ls ${BUILD_DIR} 2> /dev/null || mkdir ${BUILD_DIR})
+	(ls ${ERR_DIR} 2> /dev/null || mkdir ${ERR_DIR})
 	rustup target add ${BUILD_TARGET}
 	rustup update
 	cargo build --target=${BUILD_TARGET} --release 2> ${ERR_DIR}/${BUILD_TARGET}.${BUILD_ERR_FILE} && \
