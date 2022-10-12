@@ -75,10 +75,9 @@ async fn handle_delete_fork(state: &NeptuneState, fork_id: &String) -> NeptuneRe
                             None => {}
                         }
                     }
-                    ForkConfig::Base(_) => {
-                        let _ = forks.remove(&fork_id.clone());
-                    }
+                    ForkConfig::Base(_) => {}
                 }
+                let _ = forks.remove(&fork_id.clone());
                 NeptuneResult::from(OkResponse::default())
             }
         }
