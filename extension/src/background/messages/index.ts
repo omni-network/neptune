@@ -6,6 +6,7 @@ import * as fork from './fields/fork'
 import * as forkRpcUrl from './fields/fork-rpc-url'
 import * as providerRpcUrl from './fields/provider-rpc-url'
 import * as rpc from './fields/rpc'
+import * as sync from './fields/sync'
 
 export default {
   accounts,
@@ -16,4 +17,5 @@ export default {
   forkRpcUrl,
   providerRpcUrl,
   rpc,
+  sync,
 }

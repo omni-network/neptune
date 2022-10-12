@@ -15,46 +15,17 @@ export const colors = {
 export const FixedGlobalStyle = createGlobalStyle`
   ${normalize}
 
-  html {
-    min-width: 360px;
-    min-height: 600px;
-    width: 360px;
-    height: 600px;
-  }
-
-  body {
-    font-family: sans-serif;
+  html, body {
+    font-family: monospace, sans-serif;
+    background-color: ${colors.gray};
+    color: ${colors.white};
     -webkit-font-smoothing: antialiased;
-    color: ${colors.white};
-    background-color: ${colors.gray};
-
-    height: 560px;
-    width: 320px;
-
-    display: flex;
-    flex-direction: column;
-
-    padding: 20px;
-    margin: 20px;
-
-    background-color: ${colors.gray};
-    color: ${colors.white};
-    border: 1px solid ${colors.green};
-
-    border-radius: 10px;
-
     overscroll-behavior: none;
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-    &::-webkit-scrollbar { /* Chrome, Safari, Opera */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
       display: none;
     }
-  }
-
-  #root {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
   }
 
   * {
@@ -69,9 +40,15 @@ export const FixedGlobalStyle = createGlobalStyle`
     color: inherit;
   }
 
-  #root {
-    width: 100%;
-    height: 100%;
+  pre code {
+    font-size: 12px;
+    display: block;
+    background: none;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: scroll;
+    max-width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 `
 
@@ -81,5 +58,29 @@ export const theme = createTheme({
     primary: {
       main: colors.green,
     },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'center',
+          padding: '10px 20px',
+        },
+      },
+    },
+    MuiFormControl: {
+      styleOverrides: {
+        root: {
+          width: '100%',
+          fontSize: '0.75em',
+          margin: '1rem 0',
+        },
+      },
+    },
+  },
+  typography: {
+    fontFamily: ['monospace', 'sans-serif'].join(','),
   },
 })

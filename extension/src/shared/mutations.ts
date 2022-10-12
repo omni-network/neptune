@@ -7,15 +7,17 @@ type CreateForkParams = {
   name: string
   from?: Fork | null
   baseUrl?: URL | string | null | void
+  providerRpcUrl?: URL | string | void
 }
 
 export const createFork = async ({
   from,
   name,
   baseUrl: _baseUrl,
+  providerRpcUrl: _providerRpcUrl,
 }: CreateForkParams): Promise<Fork> => {
   const baseUrl = _baseUrl ?? (await msg.baseUrl.get())
-  const providerRpcUrl = await msg.providerRpcUrl.get()
+  const providerRpcUrl = _providerRpcUrl ?? (await msg.providerRpcUrl.get())
 
   const config = from
     ? {
@@ -50,25 +52,42 @@ export const createFork = async ({
   }
 }
 
-export const deleteFork = async (fork: Fork) => {
+export const deleteActiveFork = async () => {
+  const fork = await msg.fork.get()
   const baseUrl = await msg.baseUrl.get()
-  await fetch(url.fork(baseUrl, fork), {
+
+  if (!fork) throw new Error('No active fork')
+
+  const json = await fetch(url.fork(baseUrl, fork), {
     method: 'DELETE',
-  })
+  }).then(res => res.json())
+
+  if (!json.ok) {
+    if (json.error.Readonly) {
+      throw new Error(
+        `Cannot delete fork ${fork.name} because it is readonly. ` +
+          `It likely has child forks depending on it.`,
+      )
+    }
+
+    throw new Error('Failed to delete fork')
+  }
+
+  await msg.sync.sync()
 }
 
 export const forkMainnetLatest = async (
   baseUrl?: URL | string | void,
+  providerRpcUrl?: URL | string | void,
 ): Promise<Fork> => {
-  const providerRpcUrl = await msg.providerRpcUrl.get()
+  const _providerRpcUrl = providerRpcUrl ?? (await msg.providerRpcUrl.get())
 
-  if (!providerRpcUrl) {
-    throw new Error('No provider rpc url set')
-  }
+  if (!_providerRpcUrl) throw new Error('No provider rpc url set')
 
-  const block = await latestBlock(providerRpcUrl)
+  const block = await latestBlock(_providerRpcUrl)
   const name = `Mainnet @ block ${block}`
-  return createFork({ name, baseUrl })
+
+  return createFork({ name, baseUrl, providerRpcUrl })
 }
 
 type BacktrackOptions =

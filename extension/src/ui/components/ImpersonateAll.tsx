@@ -1,7 +1,6 @@
-import { Alert } from '@mui/lab'
 import { LoadingButton as Button } from '@mui/lab'
 import { useImpersonateAll } from 'ui/mutations'
-import { parseErrorMessage } from 'shared/utils/error'
+import { ErrorMessage, SuccessMessage } from 'ui/components/messages'
 
 const ImpersonateAll = () => {
   const {
@@ -13,15 +12,11 @@ const ImpersonateAll = () => {
 
   return (
     <>
-      <Button
-        sx={{ padding: '1rem 3rem', margin: '1rem 0' }}
-        loading={isLoading}
-        onClick={() => impersonateAll()}
-      >
+      <Button loading={isLoading} onClick={() => impersonateAll()}>
         Impersonate All
       </Button>
-      {!!error && <Alert severity="error">{parseErrorMessage(error)}</Alert>}
-      {isSuccess && <Alert severity="success">Success!</Alert>}
+      {error ? <ErrorMessage error={error} /> : null}
+      {isSuccess ? <SuccessMessage /> : null}
     </>
   )
 }

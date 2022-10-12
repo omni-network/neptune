@@ -7,19 +7,18 @@ import { formatAccount } from 'ui/utils/format'
 const SelectAccount = () => {
   const { data: accounts } = useAccounts()
   const { mutate: selectAccount } = useSelectAccount()
-
-  if (accounts == null) return null
+  const selected = accounts && accounts[0]
 
   return (
-    <FormControl sx={{ width: '100%', fontSize: '0.75em', margin: '1rem 0' }}>
+    <FormControl>
       <InputLabel id="accounts-select">Account</InputLabel>
       <Select
         onChange={e => selectAccount(e.target.value as Account)}
         labelId="accounts-select"
-        value={accounts[0]}
+        value={selected ?? ''}
         label="Account"
       >
-        {accounts.map(account => (
+        {accounts?.map(account => (
           <MenuItem key={account} value={account}>
             {formatAccount(account)}
           </MenuItem>

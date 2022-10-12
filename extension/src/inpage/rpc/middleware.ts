@@ -1,15 +1,17 @@
 import { JsonRpcMiddleware, JsonRpcRequest } from 'json-rpc-engine'
 import msg from 'inpage/messages'
 
-type RpcHandler = (req: JsonRpcRequest<any>) => Promise<unknown>
+type RpcRequest = JsonRpcRequest<any>
+type RpcHandler = (req: RpcRequest) => Promise<unknown>
+type RpcMiddleware = JsonRpcMiddleware<any, unknown>
 
 type MiddlewareFactory = (
   handler: RpcHandler,
   ...methods: string[]
-) => JsonRpcMiddleware<any, unknown>
+) => RpcMiddleware
 
 /**
- * Creates a middleware that injcets the given handler for all give methods.
+ * Creates a middleware that injcets the given handler for each given methods.
  */
 const middlewareFor: MiddlewareFactory =
   (handler, ...methods) =>
@@ -33,7 +35,7 @@ const getProviderState = async () => {
   return { accounts, chainId, isUnlocked: true }
 }
 
-const handleSetEthereumChain = async (req: JsonRpcRequest<any>) => {
+const handleSetEthereumChain = async (req: RpcRequest) => {
   throw new Error('Switching chain is not supported')
 
   // not supported yet, but the piping is there, so we'll leave this
@@ -45,17 +47,16 @@ const handleSetEthereumChain = async (req: JsonRpcRequest<any>) => {
   return null
 }
 
-const relayToBackground =
-  (): JsonRpcMiddleware<any, unknown> => async (req, res, next, end) => {
-    const resp = await msg.rpc.sendRequest(req)
+const relayToBackground = (): RpcMiddleware => async (req, res, next, end) => {
+  const resp = await msg.rpc.sendRequest(req)
 
-    res.result = resp.result
-    res.id = resp.id
-    res.jsonrpc = resp.jsonrpc
-    res.error = resp.error
+  res.result = resp.result
+  res.id = resp.id
+  res.jsonrpc = resp.jsonrpc
+  res.error = resp.error
 
-    return end()
-  }
+  return end()
+}
 
 export const rpcMiddleware = [
   middlewareFor(getProviderState, 'neptune_getProviderState'),
