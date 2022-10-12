@@ -3,8 +3,8 @@ import { Account, ChainId, Fork, RpcRequest } from '../shared/types'
 import msg from './messages'
 import url from './utils/url'
 import { store } from './storage'
-import { getAvailableForks, getFork } from 'shared/queries'
-import { impersonateAll } from 'shared/mutations'
+import { getAvailableForks } from 'shared/queries'
+import { impersonateAll, forkMainnetLatest } from 'shared/mutations'
 
 export class NeptuneController {
   private _baseUrl = new URL('http://localhost:1738')
@@ -38,6 +38,11 @@ export class NeptuneController {
 
     // rpc request handler
     msg.rpc.onRequest(this.sendRpcRequest.bind(this))
+
+    // side effects
+    msg.forkRpcUrl.onChanged(this._impersonateAllAccounts.bind(this))
+    msg.baseUrl.onChanged(this.sync.bind(this))
+    msg.sync.onSync(this.sync.bind(this))
   }
 
   /**
@@ -58,26 +63,40 @@ export class NeptuneController {
       providerRpcUrl ?? process.env.PROVIDER_RPC_URL ?? null,
     )
 
-    // get or create a fork if necessary
-    // reset current fork if it cannot be found
-    if (!fork) {
-      await getAvailableForks(this._baseUrl)
-        .then(forks => forks[0] ?? null)
-        .then(fork => this.setFork(fork))
-    } else {
-      await getFork(fork, {
-        baseUrl: this._baseUrl,
-        onError: () => this.setFork(null),
-      })
+    this.sync()
+  }
+
+  protected async _impersonateAllAccounts() {
+    if (this.forkRpcUrl) await impersonateAll(this._accounts, this.forkRpcUrl)
+  }
+
+  /**
+   * Sometimes neptune controller state & neptune server state get out of sync.
+   * forks set here don't exist on the server, accounts are not impersonated,
+   * etc. It's useful to expose a method of syncing / resetting state. Here we:
+   *
+   * - make sure the selected fork we has exists. if it does not, fork mainnet,
+   *   and set it.
+   * - make sure all accounts are impersonated
+   */
+  async sync() {
+    const available = await getAvailableForks(this._baseUrl)
+    const current = this.fork
+
+    const noneAvailable = available.length === 0
+    const shouldSelectFromAvailable =
+      !noneAvailable && (!current || !available.some(f => f.id === current.id))
+
+    if (noneAvailable && this._providerRpcUrl) {
+      const fork = await forkMainnetLatest(this._baseUrl, this._providerRpcUrl)
+      this.setFork(fork)
     }
 
-    // make sure we impersonal all accounts
-    const _impersonateAll = async () => {
-      impersonateAll(this._accounts, this.forkRpcUrl)
+    if (shouldSelectFromAvailable) {
+      this.setFork(available[0])
     }
 
-    msg.forkRpcUrl.onChanged(_impersonateAll)
-    _impersonateAll()
+    await this._impersonateAllAccounts()
   }
 
   /**
