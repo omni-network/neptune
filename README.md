@@ -13,11 +13,14 @@ The current version is not considered stable.
 
 ## Table of Contents
 
-- [Install](#install)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+- [ｎｅｐｔｕｎｅ](#ｎｅｐｔｕｎｅ)
+  - [Table of Contents](#table-of-contents)
+  - [Install](#install)
+  - [Usage](#usage)
+    - [Notes](#notes)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Acknowledgements](#acknowledgements)
 
 
 
@@ -44,10 +47,12 @@ Then,
 - [Install on Chrome](./extension/docs/install-on-chrome.md)
 - [Install on Firefox](./extension/docs/install-on-firefox.md)
 
-Then run the backend:
+Then [run the backend](./server/README.md):
 ```
 cd server
-cargo run
+make setup # only for first-time setup
+make build
+./build/neptune-<version>-<arch/os> # name will depend on your machine
 ```
 
 ## Usage
