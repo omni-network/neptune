@@ -47,8 +47,6 @@ Then,
 Then run the backend:
 ```
 cd server
-git submodule init
-git submodule update
 cargo run
 ```
 

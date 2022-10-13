@@ -2,7 +2,6 @@
 
 ## quickstart
 
-- **install:** `git submodule init` and `git submodule update`
 - **build:** `cargo build`
 - **run:** `./target/debug/neptune`
 
