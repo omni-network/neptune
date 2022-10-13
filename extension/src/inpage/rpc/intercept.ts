@@ -71,24 +71,28 @@ const tryGetChainId = async (url: URL | RequestInfo) => {
 const interceptRpcRequests =
   (fetch: Fetch): Fetch =>
   async (...args) => {
-    const [resource, init] = args
+    try {
+      const connected = await msg.connection.get()
+      if (!connected) return fetch(...args)
 
-    if (!isPost(init)) return fetch(...args)
+      const [resource, init] = args
 
-    const body = await requestInitToBody(init)
-    if (!isRpcRequest(body)) return fetch(...args)
+      if (!isPost(init)) return fetch(...args)
 
-    const connected = await msg.connection.get()
-    if (!connected) return fetch(...args)
+      const body = await requestInitToBody(init)
+      if (!isRpcRequest(body)) return fetch(...args)
 
-    // only intercept mainnet requests
-    if (!resourcesToIntercept.has(resource.toString())) {
-      const chainId = await tryGetChainId(resource)
-      resourcesToIntercept.set(resource.toString(), chainId === '0x1')
+      // only intercept mainnet requests
+      if (!resourcesToIntercept.has(resource.toString())) {
+        const chainId = await tryGetChainId(resource)
+        resourcesToIntercept.set(resource.toString(), chainId === '0x1')
+      }
+
+      if (!resourcesToIntercept.get(resource.toString())) return fetch(...args)
+      return new Response(JSON.stringify(await msg.rpc.sendRequest(body)))
+    } catch (e) {
+      return fetch(...args)
     }
-
-    if (!resourcesToIntercept.get(resource.toString())) return fetch(...args)
-    return new Response(JSON.stringify(await msg.rpc.sendRequest(body)))
   }
 
 export const initRpcIntercept = () => {
