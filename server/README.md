@@ -1,10 +1,10 @@
 # **_Neptune Server_**
 
-## quickstart
+## **Quickstart**
 
-- **install:** `git submodule init` and `git submodule update`
-- **build:** `cargo build`
-- **run:** `./target/debug/neptune`
+- **first-time setup:** `make setup`
+- **build:** `make build`
+- **run:** `./build/neptune-<version>-<architecture/os>`
 
 ## **Routes**
 
@@ -51,7 +51,7 @@ Create a new fork
 }
 ```
 
-## **_ForkConfig_ object**
+#### **_ForkConfig_ object**
 
 Neptune allows creating blank forks and forks of mainnet - _base forks_, and forks of forks - _child forks_. These are configured using the following variants of the **_ForkConfig_** object:
 
