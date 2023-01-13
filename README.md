@@ -1,7 +1,8 @@
+<image align="left" src="./media/neptune-logo.svg" style="width: 100px; height: 100px;" />
 
-# <image align="left" src="./media/neptune-logo.svg" style="width: 75x; height: 75px;" />
-## ｎｅｐｔｕｎｅ
+# ｎｅｐｔｕｎｅ
 
+<br />
 <br />
 
 God of the sea, master of the trident (forks)
