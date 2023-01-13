@@ -1,11 +1,8 @@
-# ｎｅｐｔｕｎｅ
 
-<div style="width: 100%; display: flex; align-items: center; justify-content: center;">
-    <image
-        src="./media/neptune-logo.svg"
-        style="width: 150px; height: 150px;"
-    />
-</div>
+# <image align="left" src="./media/neptune-logo.svg" style="width: 75x; height: 75px;" />
+## ｎｅｐｔｕｎｅ
+
+<br />
 
 God of the sea, master of the trident (forks)
 
