@@ -1,6 +1,9 @@
+<image align="left" src="./media/neptune-logo.svg" style="width: 100px; height: 100px;" />
+
 # ｎｅｐｔｕｎｅ
 
-<image src="./media/trident1.png"/>
+<br />
+<br />
 
 God of the sea, master of the trident (forks)
 
